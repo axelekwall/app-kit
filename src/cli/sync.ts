@@ -118,9 +118,9 @@ export function parseConfig(text: string): Config {
   const where = `${CONFIG_FILE}: "ci"`
   const ci = object(root.ci, where, ["app", "image", "timeZone", "smokeApiPath", "smokeStopLog"])
   const app = optional<string>(ci.app, "string", `${where}.app`)
-  if (app === undefined || !/^[a-z0-9][a-z0-9-]*$/.test(app)) {
+  if (app === undefined || !/^[a-z0-9]+(?:-+[a-z0-9]+)*$/.test(app)) {
     throw new SyncRefusal(
-      `${where}.app must name the app in lower case (letters, digits, hyphens): it names the binary, the image and the container.`,
+      `${where}.app must name the app in lower case (letters and digits, with hyphens between them): it names the binary, the image and the container.`,
     )
   }
   const values: Record<string, unknown> = { app }
@@ -183,8 +183,6 @@ export function ciWorkflow(ci: CiConfig, version: string): string {
     ["smoke-api-path", ci.smokeApiPath],
     ["smoke-stop-log", ci.smokeStopLog],
   ]
-  const permissions =
-    ci.image === false ? ["contents: read"] : ["contents: read", "packages: write"]
   return [
     "# Managed by app-kit: `app-kit sync` writes this file from app-kit.json, and a",
     "# test fails when it drifts. The jobs are app-kit's reusable workflow, at the",
@@ -210,8 +208,11 @@ export function ciWorkflow(ci: CiConfig, version: string): string {
     "jobs:",
     "  ci:",
     `    uses: ${KIT_REPOSITORY}/${CI_REUSABLE}@v${version}`,
+    "    # GitHub checks the called jobs' permissions against this grant even when",
+    "    # they are skipped, so it covers publish's packages: write with image off.",
     "    permissions:",
-    ...permissions.map((permission) => `      ${permission}`),
+    "      contents: read",
+    "      packages: write",
     "    with:",
     ...inputs
       .filter(([, value]) => value !== undefined)

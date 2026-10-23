@@ -168,6 +168,7 @@ describe("app-kit.json", () => {
     ["a null allow list", '{"permissions": {"allow": null}}', "list of strings"],
     ["ci without an app", '{"ci": {}}', '"ci".app must name the app'],
     ["an app name the image cannot take", '{"ci": {"app": "Bike Stack"}}', "lower case"],
+    ["a trailing hyphen in the app name", '{"ci": {"app": "bikestack-"}}', "lower case"],
     ["an image flag that is not a boolean", '{"ci": {"app": "a", "image": "no"}}', "boolean"],
   ])("refuses %s", (_, text, message) => {
     expect(() => parseConfig(text)).toThrow(message)
@@ -222,9 +223,11 @@ describe("ci.yml", () => {
     }
   })
 
-  test("does not grant packages: write when the image jobs are off", () => {
+  test("grants packages: write even with the image jobs off", () => {
+    // GitHub refuses to start a caller that grants less than a called job asks
+    // for, even when that job is skipped.
     const caller = Bun.YAML.parse(ciWorkflow({ app: "homeflow", image: false }, "0.1.0")) as Caller
-    expect(caller.jobs.ci.permissions).toEqual({ contents: "read" })
+    expect(caller.jobs.ci.permissions).toEqual({ contents: "read", packages: "write" })
     expect(caller.jobs.ci.with).toEqual({ app: "homeflow", image: false })
   })
 })

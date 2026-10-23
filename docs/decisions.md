@@ -91,9 +91,10 @@ One entry per contested choice: what was picked and why. Agents add entries with
   clean shutdown. Empty skips the probe, so the template's own checks (health, the Host check,
   exit code 0 on SIGTERM) always run. The image goes to `ghcr.io/<owner>/<app>`.
 - **The app's `ci.yml` is generated** from the `ci` values in `app-kit.json` and calls
-  `image.yml` at `v<package version>`, so bumping the package and syncing moves both. It grants
-  `packages: write` only when the image jobs run. Without `ci` values the file is not managed,
-  which is how app-kit leaves its own `ci.yml` alone.
+  `image.yml` at `v<package version>`, so bumping the package and syncing moves both. It always
+  grants `packages: write`: GitHub refuses to start a caller that grants less than a called job
+  asks for, even when that job is skipped (`startup_failure`). Without `ci` values the file is
+  not managed, which is how app-kit leaves its own `ci.yml` alone.
 - **app-kit's own `ci.yml` keeps a direct `verify` job** and adds a job that calls `image.yml`
   from the same commit with the image jobs off. A job inside a called workflow reports as
   `<caller job> / verify`, which the required `verify` check would not match. Requiring

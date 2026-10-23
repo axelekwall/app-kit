@@ -38,8 +38,13 @@ jobs:
   # The reusable workflow the apps call, run from this commit with the image
   # jobs off, so a change that breaks it fails here first. Its jobs report as
   # `image-workflow / …`, which is why `verify` above stays a job of its own.
+  # GitHub checks the called jobs' permissions against this grant even when they
+  # are skipped, so it covers publish's `packages: write`.
   image-workflow:
     uses: ./.github/workflows/image.yml
+    permissions:
+      contents: read
+      packages: write
     with:
       app: app-kit
       image: false
