@@ -5,6 +5,8 @@
   "type": "module",
   "packageManager": "bun@1.4.4",
   "exports": {
+    "./biome.json": "./config/biome.base.json",
+    "./tsconfig.json": "./config/tsconfig.base.json",
     "./package.json": "./package.json"
   },
   "scripts": {
