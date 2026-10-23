@@ -64,7 +64,9 @@ off.
   `sqlite`, `runtime`, `build` and `testing` exports and the `app-kit` command.
 - Exact versions for every dependency. Hono, Drizzle and Zod are peer dependencies.
 - A change that apps must act on is listed under "Upgrade" in `CHANGELOG.md` for its release.
-- Tags are created by CI when a version bump is merged. Agents never create or push tags.
+- A release is a pull request that bumps `version` in `package.json` and adds its section to
+  `CHANGELOG.md`. `.github/workflows/release.yml` tags `v<version>` when it is merged. Agents
+  never create or push tags.
 
 <!--
   template:agent-workflow begin

@@ -102,3 +102,16 @@ One entry per contested choice: what was picked and why. Agents add entries with
   change for the owner.
 - **The image jobs are first exercised in bikestack's adoption pull request**, where the smoke
   test runs on the pull request before anything is published.
+
+## D6 — Releases are tagged by a workflow on the merged bump
+
+**Date:** 2026-10-23 · **Status:** accepted-by-default
+
+- **`.github/workflows/release.yml`** runs on pushes to `main` that touch `package.json`. When
+  the version is not `0.0.0` and `v<version>` does not exist, it tags the pushed commit with a
+  lightweight tag. The tag is the release; there is no GitHub release object or registry.
+- **A version needs its `## <version>` section in `CHANGELOG.md`.** The workflow refuses to
+  tag without it, and `tests/release.test.ts` fails the release pull request first.
+- **`0.0.0` is the unreleased version**, so the stack's earlier pull requests, which change
+  `package.json` without releasing, tag nothing.
+- **Only the tagging job has `contents: write`.** The rest of the workflow is read-only.

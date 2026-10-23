@@ -5,9 +5,9 @@ SQLite database, a React SPA, and coding agents doing most of the work. Each app
 app-kit as a git dependency pinned to a tag. Bumping the tag brings it the shared code,
 configuration, CI and agent workflow.
 
-**Status:** nothing is built yet. Phase 0 (the agent workflow, configuration bases and CI)
-comes first; see [docs/plans/phase-0.md](docs/plans/phase-0.md). The first apps are bikestack
-and homeflow.
+**Status:** `0.1.0` carries the agent workflow, the configuration bases and CI; no application
+code yet. See [docs/plans/phase-0.md](docs/plans/phase-0.md) and [CHANGELOG.md](CHANGELOG.md).
+The first apps are bikestack and homeflow.
 
 ## What it will contain
 

@@ -36,24 +36,31 @@ behaviour. Then a `v0.1.1` round trip.
   no required approvals, a passing `verify` check (not strict, so a retargeted stack does not
   need a rebase), linear history, and no force pushes or deletion.
 - Codex review on this repository, if it should review here as it does in the apps.
-- Allow the release workflow to push tags (`contents: write` for that workflow).
+- Allow the release workflow to push tags. It asks for `contents: write` on its one job (D6);
+  if the repository's Actions settings cap the token at read, the first tag push fails.
+- Optional: requiring `image-workflow / verify` in place of `verify` would let app-kit's CI drop
+  its duplicate `verify` job (D5).
 
 ## Progress log
 
 Update after every pull request: what is done, what is next, and the `Active:` line.
 
-Active: Claude Code (Opus 5.5) on the owner's Mac, building PRs 1 to 6.
+Active: none.
 
 - 2026-10-23: repository created with this plan, the README, the MIT licence, the agent setup
   copied from bikestack and D1. Next: PR 1, tooling.
 - 2026-10-23: PR 1 (#1), tooling, commands, pre-push hook and CI; `verify:full` green
   locally. Next: PR 2, configuration bases.
-- 2026-10-23: PR 2, configuration bases: both resolve by package name (D2); the bases are
+- 2026-10-23: PR 2 (#2), configuration bases: both resolve by package name (D2); the bases are
   `config/*.base.json` because Biome refuses a second `biome.json` in the project. Next: PR 3,
   the agent-workflow content.
-- 2026-10-23: PR 3, the shared blocks and managed files made generic in place (D3). Next:
+- 2026-10-23: PR 3 (#3), the shared blocks and managed files made generic in place (D3). Next:
   PR 4, `app-kit sync` and `app-kit check`.
-- 2026-10-23: PR 4, `app-kit sync` and `app-kit check` (D4), with `tests/app-kit.test.ts` as the
+- 2026-10-23: PR 4 (#4), `app-kit sync` and `app-kit check` (D4), with `tests/app-kit.test.ts` as the
   managed drift test and app-kit synced from itself. Next: PR 5, the reusable workflow.
-- 2026-10-23: PR 5, the reusable workflow `image.yml` and the generated `ci.yml` (D5); app-kit's
+- 2026-10-23: PR 5 (#5), the reusable workflow `image.yml` and the generated `ci.yml` (D5); app-kit's
   CI runs it with the image jobs off. Next: PR 6, releasing.
+- 2026-10-23: PR 6 (#6), releasing: `CHANGELOG.md`, `release.yml` (D6) and the bump to `0.1.0`.
+  The stack (#1 to #6) is ready for the owner. Next, after it is merged and `v0.1.0` is tagged:
+  bikestack's adoption, as its own one-pull-request stack, which is also the first install from
+  the public tag and the first run of the image jobs from `image.yml`.

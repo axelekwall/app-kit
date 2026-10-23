@@ -1,0 +1,43 @@
+# Tags a release when a version bump lands on main.
+#
+# A release is a pull request that bumps `version` in package.json and adds its
+# section to CHANGELOG.md; the owner merges it. This job then tags the merge
+# commit `v<version>`, which is what apps pin. Agents never create tags.
+
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+
+permissions:
+  contents: read
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Tag the version if it is new
+        run: |
+          version="$(jq -r .version package.json)"
+          tag="v$version"
+          if [ "$version" = "0.0.0" ]; then
+            echo "0.0.0 is the unreleased version; nothing to tag."
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "$tag exists; nothing to tag."
+            exit 0
+          fi
+          if ! grep -qx "## $version" CHANGELOG.md; then
+            echo "::error file=CHANGELOG.md::No '## $version' section for the version in package.json."
+            exit 1
+          fi
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag"
+          echo "Tagged $GITHUB_SHA as $tag."
