@@ -46,3 +46,5 @@ Active: Claude Code (Opus 5.5) on the owner's Mac, building PRs 1 to 6.
 
 - 2026-10-23: repository created with this plan, the README, the MIT licence, the agent setup
   copied from bikestack and D1. Next: PR 1, tooling.
+- 2026-10-23: PR 1 (#1), tooling, commands, pre-push hook and CI; `verify:full` green
+  locally. Next: PR 2, configuration bases.
