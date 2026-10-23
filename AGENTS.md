@@ -49,10 +49,13 @@ The shared agent workflow is app-kit's own `template:agent-workflow` blocks in `
 `.claude/settings.json` and three tests, `tests/agents-commands.test.ts`,
 `tests/bun-version.test.ts` and `tests/app-kit.test.ts`. Editing one here changes it for every
 app at the next release. `app-kit sync` (`src/cli/`) writes them into an app; `app-kit.json`
-holds the app's values, and `tests/app-kit.test.ts` fails on drift.
+holds the app's values, and `tests/app-kit.test.ts` fails on drift. When `app-kit.json` has
+`ci` values, sync also writes the app's `.github/workflows/ci.yml`, which calls the reusable
+workflow `.github/workflows/image.yml` at the package's tag.
 
 CI (`.github/workflows/ci.yml`) runs `verify:full` in a job named `verify`, the check branch
-protection on `main` requires.
+protection on `main` requires, and runs `image.yml` from the same commit with the image jobs
+off.
 
 ## Rules
 

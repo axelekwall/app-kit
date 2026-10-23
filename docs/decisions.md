@@ -79,3 +79,25 @@ One entry per contested choice: what was picked and why. Agents add entries with
   test output rather than in a subprocess's.
 - **The command runs on Bun as TypeScript** (`bin` points at `src/cli/main.ts` with a Bun
   shebang). An app calls it from its `kit:sync` script.
+
+## D5 — The reusable workflow takes the smoke test's app-specific values as inputs
+
+**Date:** 2026-10-23 · **Status:** accepted-by-default
+
+- **`image.yml` is bikestack's `ci.yml` with its names made inputs:** `app` (the binary, the
+  image and the container), `image` (whether the image jobs run), `time-zone`, and two smoke
+  values that are bikestack's rather than the template's: `smoke-api-path`, an API path that
+  answers 401 without a session and 200 with one, and `smoke-stop-log`, the line logged on a
+  clean shutdown. Empty skips the probe, so the template's own checks (health, the Host check,
+  exit code 0 on SIGTERM) always run. The image goes to `ghcr.io/<owner>/<app>`.
+- **The app's `ci.yml` is generated** from the `ci` values in `app-kit.json` and calls
+  `image.yml` at `v<package version>`, so bumping the package and syncing moves both. It grants
+  `packages: write` only when the image jobs run. Without `ci` values the file is not managed,
+  which is how app-kit leaves its own `ci.yml` alone.
+- **app-kit's own `ci.yml` keeps a direct `verify` job** and adds a job that calls `image.yml`
+  from the same commit with the image jobs off. A job inside a called workflow reports as
+  `<caller job> / verify`, which the required `verify` check would not match. Requiring
+  `image-workflow / verify` instead would drop the duplicate run; that is a branch protection
+  change for the owner.
+- **The image jobs are first exercised in bikestack's adoption pull request**, where the smoke
+  test runs on the pull request before anything is published.

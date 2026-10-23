@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { chmod, mkdtemp, readdir, rm, stat } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { drift, KIT_ROOT, parseConfig, replaceBlock, SyncRefusal, sync } from "./sync"
+import { ciWorkflow, drift, KIT_ROOT, parseConfig, replaceBlock, SyncRefusal, sync } from "./sync"
 
 const BLOCK = [
   "<!--",
@@ -14,6 +14,15 @@ const BLOCK = [
   "",
   "<!-- template:agent-workflow end -->",
 ].join("\n")
+
+const WORKFLOW = Bun.YAML.parse(
+  await Bun.file(join(KIT_ROOT, ".github/workflows/image.yml")).text(),
+) as { on: { workflow_call: { inputs: Record<string, { required?: boolean }> } } }
+const INPUTS = WORKFLOW.on.workflow_call.inputs
+
+type Caller = {
+  jobs: { ci: { uses: string; permissions: Record<string, string>; with: Record<string, unknown> } }
+}
 
 let app: string
 
@@ -151,12 +160,15 @@ describe("app-kit.json", () => {
 
   test.each([
     ["not JSON", "{", "is not valid JSON"],
-    ["a list", "[]", "must hold a JSON object"],
+    ["a list", "[]", "must be a JSON object"],
     ["an unknown key", '{"name": "x"}', 'unknown key "name"'],
     ["entries that are not strings", '{"permissions": {"allow": [1]}}', "list of strings"],
     ["an unknown permissions key", '{"permissions": {"deny": []}}', 'unknown key "deny"'],
-    ["null permissions", '{"permissions": null}', '"permissions" must be an object'],
+    ["null permissions", '{"permissions": null}', '"permissions" must be a JSON object'],
     ["a null allow list", '{"permissions": {"allow": null}}', "list of strings"],
+    ["ci without an app", '{"ci": {}}', '"ci".app must name the app'],
+    ["an app name the image cannot take", '{"ci": {"app": "Bike Stack"}}', "lower case"],
+    ["an image flag that is not a boolean", '{"ci": {"app": "a", "image": "no"}}', "boolean"],
   ])("refuses %s", (_, text, message) => {
     expect(() => parseConfig(text)).toThrow(message)
   })
@@ -168,5 +180,51 @@ describe("replaceBlock", () => {
     expect(() => replaceBlock(reversed, BLOCK, "AGENTS.md")).toThrow(
       "AGENTS.md's template:agent-workflow end marker comes before its begin",
     )
+  })
+})
+
+describe("ci.yml", () => {
+  test("is written only when app-kit.json has ci values", async () => {
+    await staleApp()
+    await sync(app)
+    expect(await Bun.file(join(app, ".github/workflows/ci.yml")).exists()).toBe(false)
+
+    const config = JSON.parse(await read("app-kit.json"))
+    await write("app-kit.json", JSON.stringify({ ...config, ci: { app: "bikestack" } }))
+    expect(await drift(app)).toEqual([{ path: ".github/workflows/ci.yml", reason: "missing" }])
+  })
+
+  test("calls the reusable workflow at the package's tag with inputs it declares", async () => {
+    const { version } = await Bun.file(join(KIT_ROOT, "package.json")).json()
+    const caller = Bun.YAML.parse(
+      ciWorkflow(
+        {
+          app: "bikestack",
+          timeZone: "Europe/Stockholm",
+          smokeApiPath: "/api/status",
+          smokeStopLog: "Stopped; database closed.",
+        },
+        version,
+      ),
+    ) as Caller
+
+    expect(caller.jobs.ci.uses).toBe(`axelekwall/app-kit/.github/workflows/image.yml@v${version}`)
+    expect(caller.jobs.ci.permissions).toEqual({ contents: "read", packages: "write" })
+    expect(caller.jobs.ci.with).toEqual({
+      app: "bikestack",
+      "time-zone": "Europe/Stockholm",
+      "smoke-api-path": "/api/status",
+      "smoke-stop-log": "Stopped; database closed.",
+    })
+    for (const input of Object.keys(caller.jobs.ci.with)) expect(INPUTS).toHaveProperty(input)
+    for (const [input, spec] of Object.entries(INPUTS)) {
+      if (spec.required) expect(caller.jobs.ci.with).toHaveProperty(input)
+    }
+  })
+
+  test("does not grant packages: write when the image jobs are off", () => {
+    const caller = Bun.YAML.parse(ciWorkflow({ app: "homeflow", image: false }, "0.1.0")) as Caller
+    expect(caller.jobs.ci.permissions).toEqual({ contents: "read" })
+    expect(caller.jobs.ci.with).toEqual({ app: "homeflow", image: false })
   })
 })

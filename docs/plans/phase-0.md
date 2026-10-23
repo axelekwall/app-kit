@@ -55,3 +55,5 @@ Active: Claude Code (Opus 5.5) on the owner's Mac, building PRs 1 to 6.
   PR 4, `app-kit sync` and `app-kit check`.
 - 2026-10-23: PR 4, `app-kit sync` and `app-kit check` (D4), with `tests/app-kit.test.ts` as the
   managed drift test and app-kit synced from itself. Next: PR 5, the reusable workflow.
+- 2026-10-23: PR 5, the reusable workflow `image.yml` and the generated `ci.yml` (D5); app-kit's
+  CI runs it with the image jobs off. Next: PR 6, releasing.

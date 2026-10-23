@@ -1,0 +1,156 @@
+# The apps' CI, called from each app's thin `ci.yml` at the same tag as the
+# package (`app-kit sync` writes that file from `app-kit.json`).
+#
+#   verify       `bun run verify:full`, the gate the app runs locally
+#   image-smoke  the app's Dockerfile built for amd64 and started the way the
+#                cluster starts it, then probed and stopped
+#   publish      on main, the arm64 image pushed to ghcr.io/<owner>/<app>,
+#                tagged main-<shortsha>-<unix-ts>
+#
+# The image jobs assume the app contract (homelab's app-template.md): a
+# `scripts/build.ts` that takes `--target`, a Dockerfile that copies
+# `dist/<app>`, `/healthz`, the Host check, master-key sign-in at `/login`, and
+# a clean exit on SIGTERM. The caller grants `packages: write` for publish.
+
+name: image
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: The app's name, for the binary, the image and the container.
+        type: string
+        required: true
+      image:
+        description: Whether the image jobs run. Off for an app without a Dockerfile.
+        type: boolean
+        default: true
+      time-zone:
+        description: TZ for the gate. Far from UTC, so code that leans on the host's zone fails.
+        type: string
+        default: America/Los_Angeles
+      smoke-api-path:
+        description: A path under /api that answers 401 without a session and 200 with one. Empty skips the sign-in probes.
+        type: string
+        default: ""
+      smoke-stop-log:
+        description: A line the app logs on a clean shutdown. Empty skips the check.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      TZ: ${{ inputs.time-zone }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      # Biome, TypeScript, the tests and the production build: the commands
+      # used locally.
+      - run: bun run verify:full
+
+  # The Dockerfile, checked on every run: the same file built for amd64, so it
+  # runs on the runner, started the way the cluster starts it (read-only root,
+  # no capabilities, non-root), probed, and stopped with SIGTERM.
+  image-smoke:
+    if: inputs.image
+    runs-on: ubuntu-latest
+    env:
+      APP: ${{ inputs.app }}
+      API_PATH: ${{ inputs.smoke-api-path }}
+      STOP_LOG: ${{ inputs.smoke-stop-log }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun scripts/build.ts --target=bun-linux-x64
+
+      - run: docker build --platform linux/amd64 -t "$APP:smoke" .
+
+      - name: Start, probe and stop the container
+        run: |
+          docker volume create "$APP-data"
+          master_key="$(openssl rand -base64 32)"
+          docker run -d --name "$APP" --read-only --cap-drop ALL \
+            -v "$APP-data:/data" -p 3000:3000 \
+            -e MASTER_KEY="$master_key" \
+            -e PUBLIC_URL=http://localhost:3000 \
+            "$APP:smoke"
+          for attempt in $(seq 1 30); do
+            curl -fsS http://localhost:3000/healthz && break
+            sleep 1
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/healthz)" = 200
+          if [ -n "$API_PATH" ]; then
+            # Auth is on: the API needs a key.
+            test "$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000$API_PATH")" = 401
+            # Signing in with the master key opens a session the API accepts.
+            curl -s -o /dev/null -c cookies -H 'Origin: http://localhost:3000' \
+              --data-urlencode "key=$master_key" http://localhost:3000/login
+            test "$(curl -s -o /dev/null -w '%{http_code}' -b cookies "http://localhost:3000$API_PATH")" = 200
+          fi
+          # The Host check: a name that is not PUBLIC_URL's.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: rebound.example' http://localhost:3000/)" = 403
+          docker stop --time 10 "$APP"
+          test "$(docker inspect -f '{{.State.ExitCode}}' "$APP")" = 0
+          docker logs "$APP"
+          if [ -n "$STOP_LOG" ]; then
+            docker logs "$APP" | grep -qF "$STOP_LOG"
+          fi
+
+  # Every push to main publishes an arm64 image for the Pi, tagged
+  # main-<shortsha>-<unix-ts>; Flux sorts on the timestamp.
+  publish:
+    if: inputs.image && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [verify, image-smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      # Cross-compiles on the amd64 runner; no QEMU, no arm runner.
+      - run: bun scripts/build.ts --target=bun-linux-arm64
+
+      - id: tag
+        run: echo "tag=main-$(git rev-parse --short HEAD)-$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/${{ inputs.app }}:${{ steps.tag.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
