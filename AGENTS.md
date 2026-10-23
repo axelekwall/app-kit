@@ -1,0 +1,132 @@
+# app-kit
+
+The shared base for the owner's small personal apps: infrastructure code, configuration bases,
+the reusable CI workflow, and the agent workflow that `app-kit sync` writes into each app.
+Apps pin it as a git dependency at a tag. The first two are bikestack and homeflow, sibling
+checkouts in `~/dev` (`../bikestack`, `../homeflow`).
+
+Read these when the task calls for them:
+
+- `../homelab/docs/app-kit-plan.md`: the plan. It covers what is shared, the package's exports,
+  sync, releases, and the phases. Until homelab's pull request #2 is merged, read it with
+  `git -C ../homelab show origin/docs/app-kit-plan:docs/app-kit-plan.md`.
+- `../homelab/docs/app-template.md`: the app standard this package implements.
+- `docs/plans/`: the plan for the current phase, with its progress log.
+- `docs/decisions.md`: why each contested choice was made.
+- `../bikestack`: the source of the first release. Its code and tests are copied from there;
+  read it, but change it only through a pull request in that repository.
+
+## This repository is public
+
+Commit nothing private: no secrets, no tailnet or host names, no details of the homelab, and
+nothing from the apps' data. Code and docs here describe the shared standard only.
+
+## Commands
+
+Nothing is set up yet. Phase 0's first pull request adds `bun run setup`, `verify` and
+`verify:full`, `scripts/pr-reviews.ts` and CI. Until then, the commands named in the workflow
+below do not exist. Say so instead of skipping them silently.
+
+## Rules
+
+- Bun only: never npm, npx, pnpm, yarn or node. No native npm modules.
+- TypeScript source, no build step. Shared code uses Web APIs. Bun APIs are allowed only in the
+  `sqlite`, `runtime`, `build` and `testing` exports and the `app-kit` command.
+- Exact versions for every dependency. Hono, Drizzle and Zod are peer dependencies.
+- A change that apps must act on is listed under "Upgrade" in `CHANGELOG.md` for its release.
+- Tags are created by CI when a version bump is merged. Agents never create or push tags.
+
+<!--
+  template:agent-workflow begin
+  Everything from here to "template:agent-workflow end" belongs to the shared agent-workflow
+  template and is kept free of app-specific content, so it can be lifted into the shared
+  app-kit package and written back by its sync (homelab/docs/app-kit-plan.md). App-specific
+  rules go in the sections above.
+-->
+
+## Working agreement
+
+Agreed with the owner. It applies to every agent working here.
+
+**Allowed without asking:** create branches, commit, push feature branches you created
+(rebase and `--force-with-lease` on them is fine), open and update stacked pull requests, post
+and reply to comments on pull requests you created, add non-native npm dependencies, make
+implementation decisions.
+
+**Log decisions.** An implementation decision a later reader could question goes into
+`docs/decisions.md` as a new entry with status `accepted-by-default`, in the same format, with
+the next free D-number. List them in the stack summary.
+
+**Stop and report back, without proceeding, for:**
+
+- a major decision: contradicting the spec or the decision log; changing anything expensive to
+  migrate (record shapes, identifiers, data formats, the auth model); a heavy or unusual
+  dependency; anything security-relevant beyond what the app template specifies;
+- anything outside this repository (other repositories, dotfiles, global configuration).
+  Reading is fine;
+- external settings: repository settings on the forge, branch protection, secrets, Actions
+  permissions, password managers, network and DNS providers;
+- irreversible actions: merging any pull request, pushing to `main`, force-pushing branches you
+  did not create, deleting branches or tags, publishing anything. **Never run `gh pr merge`.**
+  The owner merges stacks.
+
+**Signing.** Commits are signed. If signing fails, try once more, then commit with
+`git -c commit.gpgsign=false commit …` and keep going. Record which commits are unsigned in the
+stack summary.
+
+**Messages.** Conventional commits, ending with a `Co-Authored-By:` line for the agent. Pull
+request descriptions: short bullets of what changed and why, then "Decisions" if any; no test
+plan section.
+
+**No agent-specific guard.** These rules bind every agent (Claude Code, Codex, agy) as written.
+The owner protects `main` on the forge: a change needs a pull request with passing CI, and
+force pushes and deletion are refused (D21). Per-tool permission lists, such as
+`.claude/settings.json`, only spare prompts for routine commands; they are for speed, not
+safety, and changing them is a configuration change that needs the owner's approval.
+
+## Stacks and handover
+
+Work arrives as stacks of pull requests: each targets the branch of the one below it, the
+first targets `main`. One logical change per pull request.
+
+For each pull request: implement → `bun run verify:full` → review your own diff (correctness,
+the app contract, the persistence and layering rules above) → check anything with a UI or HTTP
+surface against the running dev server (`playwright-cli` in its own `-s=<name>` session, closed
+afterwards, or `curl`) → commit → push → open the pull request → update the plan's progress log.
+Codex reviews each pushed pull request within minutes; do not wait for it. Before handing
+over, run `bun scripts/pr-reviews.ts` across the stack: fix valid findings in the pull request
+they belong to (restack with rebase and `--force-with-lease`), and answer invalid ones with a
+one-line reason.
+
+When the stack is ready, post a **stack summary** comment on its top pull request: what it
+covers, how it was verified, the decisions logged, Codex's findings and how each was handled,
+unsigned commits, and the merge order (bottom-up, squash merges; after each merge, retarget the
+next pull request to `main`).
+
+**One agent per stack at a time.** The plan's progress log has an `Active:` line naming the
+agent and the machine. Check it before starting; set it when you start and clear it when you
+hand over.
+
+**Session context and agent memory are not state. The repository and GitHub are.** Anything
+the next agent needs goes into the plan's progress log, a decision entry, a commit or a pull
+request comment.
+
+## Resuming work
+
+1. `git fetch --prune`, then `gh pr list` to see the open stack. With no open pull requests,
+   `main` is current.
+2. Check out the top branch of the stack, or `main` when nothing is open. The plan on that
+   branch is the current one: the copy on `main` is stale while a stack is open.
+3. Read the progress log in the current plan under `docs/plans/`. Check the `Active:` line
+   and take it over by updating it (one agent per stack).
+4. `bun scripts/pr-reviews.ts` for unanswered review threads.
+5. `bun run setup`, then `bun run verify` for a green baseline.
+6. Continue from the log's "Next" entry.
+
+## Completion
+
+A change is done when `bun run verify:full` passes and you have seen the output, not when it
+looks right. A pull request is done when CI says so. Say when a check failed, was skipped or
+was not run.
+
+<!-- template:agent-workflow end -->
