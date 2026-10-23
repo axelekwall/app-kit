@@ -13,7 +13,7 @@ Proposed. The first agent refines it and records the result here.
 
 | # | Pull request |
 |---|---|
-| 1 | Tooling: `package.json` (`@axelekwall/app-kit`, `0.0.0`, private exports map), the Bun pin in `.bun-version`, `packageManager` and `mise.toml` with the test that holds them equal, Biome, TypeScript 7, `setup`, `verify`, `verify:full`, the pre-push hook, `scripts/pr-reviews.ts` copied from bikestack, and a CI workflow running `verify:full`. The commands test for `AGENTS.md`. |
+| 1 | Tooling: `package.json` (`@axelekwall/app-kit`, `0.0.0`, private exports map), the Bun pin in `.bun-version`, `packageManager` and `mise.toml` with the test that holds them equal, Biome, TypeScript 7, `setup`, `verify`, `verify:full`, the pre-push hook, `scripts/pr-reviews.ts` copied from bikestack, and a CI workflow running `verify:full` in a job named `verify`, the check branch protection requires. The commands test for `AGENTS.md`. |
 | 2 | Configuration bases: `biome.json` and `tsconfig.json` exported for `extends`, with a fixture consumer under `tests/` that proves both resolve from `node_modules` on the pinned Biome and TypeScript. If the package name does not resolve, a path does; record which in a decision. |
 | 3 | The agent-workflow content: the `AGENTS.md` and `CLAUDE.md` blocks and the managed files, lifted from bikestack and made generic. Bikestack-specific wording comes out: the reference to its D21, "the persistence and layering rules above", and anything about a dev server that an app without one would not have. |
 | 4 | `app-kit sync` and `app-kit check`: blocks between the `template:agent-workflow` markers, managed files, `app-kit.json` variables, refusals that name the file. Tests over temporary directories. app-kit runs `check` on itself. |
@@ -27,9 +27,9 @@ behaviour. Then a `v0.1.1` round trip.
 
 ## For the owner
 
-- Branch protection on `main`, as on the apps: a pull request with passing CI, and no force
-  pushes or deletion. Until it is on, nothing technical stops a push to `main`. The working
-  agreement still forbids it.
+- Branch protection on `main` is on (2026-10-23), enforced for admins: a pull request with
+  no required approvals, a passing `verify` check (not strict, so a retargeted stack does not
+  need a rebase), linear history, and no force pushes or deletion.
 - Codex review on this repository, if it should review here as it does in the apps.
 - Allow the release workflow to push tags (`contents: write` for that workflow).
 
