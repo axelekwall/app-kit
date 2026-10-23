@@ -58,3 +58,24 @@ One entry per contested choice: what was picked and why. Agents add entries with
   owner protects `main` where the forge allows it and the agreement holds where it does not,
   without a decision number. The apps are private repositories on a plan with no branch
   protection, and each records that in its own log (bikestack D21, homeflow D11).
+
+## D4 — `app-kit sync`: whole managed files, one block per file, `app-kit.json` required
+
+**Date:** 2026-10-23 · **Status:** accepted-by-default
+
+- **The block** runs from the start of the HTML comment holding `template:agent-workflow begin`
+  to the end of the `template:agent-workflow end` comment, so the marker comment's own text is
+  shared too. A file with no block, two blocks or the markers reversed is refused, naming the
+  file. Every refusal comes before anything is written.
+- **Managed files are replaced whole.** `.githooks/pre-push` is also made executable, and
+  `check` reports a hook that is not. `.claude/settings.json` is the package's list with the
+  app's `permissions.allow` from `app-kit.json` appended, each entry once.
+- **`app-kit.json` is required**, with `{}` for the defaults, so adopting the kit is explicit.
+  Unknown keys are refused, so a misspelt key is not silently ignored. It holds only
+  `permissions` until the reusable workflow adds its values.
+- **The drift test imports `@axelekwall/app-kit/sync`.** `tests/app-kit.test.ts` is the same
+  file in every app and in app-kit, where the import resolves through the package's own name;
+  Bun and TypeScript both support that. Running the check in-process keeps a failure in the
+  test output rather than in a subprocess's.
+- **The command runs on Bun as TypeScript** (`bin` points at `src/cli/main.ts` with a Bun
+  shebang). An app calls it from its `kit:sync` script.

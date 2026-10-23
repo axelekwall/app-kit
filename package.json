@@ -4,9 +4,13 @@
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.4",
+  "bin": {
+    "app-kit": "./src/cli/main.ts"
+  },
   "exports": {
     "./biome.json": "./config/biome.base.json",
     "./tsconfig.json": "./config/tsconfig.base.json",
+    "./sync": "./src/cli/sync.ts",
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -16,7 +20,8 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "verify": "bun run check && bun run typecheck && bun run test",
-    "verify:full": "bun run verify"
+    "verify:full": "bun run verify",
+    "kit:sync": "bun src/cli/main.ts sync"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
