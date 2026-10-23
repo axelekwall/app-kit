@@ -35,6 +35,12 @@ const EXECUTABLE_FILES: ReadonlySet<string> = new Set([".githooks/pre-push"])
 
 const SETTINGS_FILE = ".claude/settings.json"
 
+const CI_FILE = ".github/workflows/ci.yml"
+
+const KIT_REPOSITORY = "axelekwall/app-kit"
+
+const CI_REUSABLE = ".github/workflows/image.yml"
+
 const BEGIN = /<!--\s*template:agent-workflow begin[\s\S]*?-->/g
 const END = /<!--\s*template:agent-workflow end\s*-->/g
 
@@ -45,6 +51,16 @@ export class SyncRefusal extends Error {
 
 export interface Config {
   readonly permissions: { readonly allow: readonly string[] }
+  /** The inputs of the reusable workflow. Without them, `ci.yml` is not managed. */
+  readonly ci?: CiConfig
+}
+
+export interface CiConfig {
+  readonly app: string
+  readonly image?: boolean
+  readonly timeZone?: string
+  readonly smokeApiPath?: string
+  readonly smokeStopLog?: string
 }
 
 /** One file as the sync would write it. */
@@ -60,6 +76,27 @@ export interface Drift {
   readonly reason: "missing" | "content" | "mode"
 }
 
+/** `value` as an object holding only `known` keys, or a refusal naming `where`. */
+function object(value: unknown, where: string, known: readonly string[]): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new SyncRefusal(`${where} must be a JSON object.`)
+  }
+  for (const key of Object.keys(value)) {
+    if (!known.includes(key)) {
+      throw new SyncRefusal(
+        `${where} has an unknown key "${key}". Known keys: ${known.join(", ")}.`,
+      )
+    }
+  }
+  return value as Record<string, unknown>
+}
+
+function optional<T>(value: unknown, type: "string" | "boolean", where: string): T | undefined {
+  if (value === undefined) return undefined
+  if (typeof value !== type) throw new SyncRefusal(`${where} must be a ${type}.`)
+  return value as T
+}
+
 export function parseConfig(text: string): Config {
   let raw: unknown
   try {
@@ -67,33 +104,36 @@ export function parseConfig(text: string): Config {
   } catch (error) {
     throw new SyncRefusal(`${CONFIG_FILE} is not valid JSON: ${(error as Error).message}`)
   }
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-    throw new SyncRefusal(`${CONFIG_FILE} must hold a JSON object.`)
-  }
-  const known = new Set(["permissions"])
-  for (const key of Object.keys(raw)) {
-    if (!known.has(key)) {
-      throw new SyncRefusal(`${CONFIG_FILE} has an unknown key "${key}". Known keys: permissions.`)
-    }
-  }
+  const root = object(raw, CONFIG_FILE, ["permissions", "ci"])
 
-  // An absent key takes its default; an explicit null is refused below like any other wrong type.
-  const given = (raw as { permissions?: unknown }).permissions
-  const permissions = given === undefined ? {} : given
-  if (typeof permissions !== "object" || permissions === null || Array.isArray(permissions)) {
-    throw new SyncRefusal(`${CONFIG_FILE}: "permissions" must be an object with an "allow" list.`)
-  }
-  for (const key of Object.keys(permissions)) {
-    if (key !== "allow") {
-      throw new SyncRefusal(`${CONFIG_FILE}: "permissions" has an unknown key "${key}".`)
-    }
-  }
-  const listed = (permissions as { allow?: unknown }).allow
-  const allow = listed === undefined ? [] : listed
+  // An absent key takes its default; an explicit null is refused like any other wrong type.
+  const given = root.permissions === undefined ? {} : root.permissions
+  const permissions = object(given, `${CONFIG_FILE}: "permissions"`, ["allow"])
+  const allow = permissions.allow === undefined ? [] : permissions.allow
   if (!Array.isArray(allow) || !allow.every((entry) => typeof entry === "string")) {
     throw new SyncRefusal(`${CONFIG_FILE}: "permissions.allow" must be a list of strings.`)
   }
-  return { permissions: { allow } }
+  if (root.ci === undefined) return { permissions: { allow } }
+
+  const where = `${CONFIG_FILE}: "ci"`
+  const ci = object(root.ci, where, ["app", "image", "timeZone", "smokeApiPath", "smokeStopLog"])
+  const app = optional<string>(ci.app, "string", `${where}.app`)
+  if (app === undefined || !/^[a-z0-9]+(?:-+[a-z0-9]+)*$/.test(app)) {
+    throw new SyncRefusal(
+      `${where}.app must name the app in lower case (letters and digits, with hyphens between them): it names the binary, the image and the container.`,
+    )
+  }
+  const values: Record<string, unknown> = { app }
+  for (const [key, type] of [
+    ["image", "boolean"],
+    ["timeZone", "string"],
+    ["smokeApiPath", "string"],
+    ["smokeStopLog", "string"],
+  ] as const) {
+    const value = optional(ci[key], type, `${where}.${key}`)
+    if (value !== undefined) values[key] = value
+  }
+  return { permissions: { allow }, ci: values as unknown as CiConfig }
 }
 
 /** The span of the one marked block in `text`, or a refusal naming `path`. */
@@ -130,6 +170,57 @@ export function settings(kitText: string, config: Config): string {
   return `${JSON.stringify({ ...base, permissions: { ...base.permissions, allow } }, null, 2)}\n`
 }
 
+/**
+ * The app's `ci.yml`: app-kit's reusable workflow at the package's own tag, with
+ * the inputs `app-kit.json` sets. Inputs it leaves out take the workflow's
+ * defaults.
+ */
+export function ciWorkflow(ci: CiConfig, version: string): string {
+  const inputs: [string, string | boolean | undefined][] = [
+    ["app", ci.app],
+    ["image", ci.image],
+    ["time-zone", ci.timeZone],
+    ["smoke-api-path", ci.smokeApiPath],
+    ["smoke-stop-log", ci.smokeStopLog],
+  ]
+  return [
+    "# Managed by app-kit: `app-kit sync` writes this file from app-kit.json, and a",
+    "# test fails when it drifts. The jobs are app-kit's reusable workflow, at the",
+    "# same tag as the package; change them in the app-kit repository.",
+    "name: ci",
+    "",
+    "on:",
+    "  push:",
+    "    branches: [main]",
+    "  pull_request:",
+    "",
+    "# A newer push to a pull request supersedes its in-flight run. Runs on main are",
+    "# never cancelled, so every merge gets its image.",
+    "concurrency:",
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: a GitHub Actions expression
+    "  group: ${{ github.workflow }}-${{ github.ref }}",
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: a GitHub Actions expression
+    "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
+    "",
+    "permissions:",
+    "  contents: read",
+    "",
+    "jobs:",
+    "  ci:",
+    `    uses: ${KIT_REPOSITORY}/${CI_REUSABLE}@v${version}`,
+    "    # GitHub checks the called jobs' permissions against this grant even when",
+    "    # they are skipped, so it covers publish's packages: write with image off.",
+    "    permissions:",
+    "      contents: read",
+    "      packages: write",
+    "    with:",
+    ...inputs
+      .filter(([, value]) => value !== undefined)
+      .map(([name, value]) => `      ${name}: ${JSON.stringify(value)}`),
+    "",
+  ].join("\n")
+}
+
 async function readText(path: string): Promise<string | null> {
   const file = Bun.file(path)
   return (await file.exists()) ? await file.text() : null
@@ -162,6 +253,10 @@ export async function plan(app: string, kit: string = KIT_ROOT): Promise<Planned
   }
   const kitSettings = await Bun.file(join(kit, SETTINGS_FILE)).text()
   planned.push({ path: SETTINGS_FILE, content: settings(kitSettings, config), executable: false })
+  if (config.ci !== undefined) {
+    const { version } = (await Bun.file(join(kit, "package.json")).json()) as { version: string }
+    planned.push({ path: CI_FILE, content: ciWorkflow(config.ci, version), executable: false })
+  }
   return planned
 }
 
