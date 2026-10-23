@@ -155,6 +155,8 @@ describe("app-kit.json", () => {
     ["an unknown key", '{"name": "x"}', 'unknown key "name"'],
     ["entries that are not strings", '{"permissions": {"allow": [1]}}', "list of strings"],
     ["an unknown permissions key", '{"permissions": {"deny": []}}', 'unknown key "deny"'],
+    ["null permissions", '{"permissions": null}', '"permissions" must be an object'],
+    ["a null allow list", '{"permissions": {"allow": null}}', "list of strings"],
   ])("refuses %s", (_, text, message) => {
     expect(() => parseConfig(text)).toThrow(message)
   })

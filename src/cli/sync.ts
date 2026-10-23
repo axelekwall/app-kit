@@ -77,7 +77,9 @@ export function parseConfig(text: string): Config {
     }
   }
 
-  const permissions = (raw as { permissions?: unknown }).permissions ?? {}
+  // An absent key takes its default; an explicit null is refused below like any other wrong type.
+  const given = (raw as { permissions?: unknown }).permissions
+  const permissions = given === undefined ? {} : given
   if (typeof permissions !== "object" || permissions === null || Array.isArray(permissions)) {
     throw new SyncRefusal(`${CONFIG_FILE}: "permissions" must be an object with an "allow" list.`)
   }
@@ -86,7 +88,8 @@ export function parseConfig(text: string): Config {
       throw new SyncRefusal(`${CONFIG_FILE}: "permissions" has an unknown key "${key}".`)
     }
   }
-  const allow = (permissions as { allow?: unknown }).allow ?? []
+  const listed = (permissions as { allow?: unknown }).allow
+  const allow = listed === undefined ? [] : listed
   if (!Array.isArray(allow) || !allow.every((entry) => typeof entry === "string")) {
     throw new SyncRefusal(`${CONFIG_FILE}: "permissions.allow" must be a list of strings.`)
   }
