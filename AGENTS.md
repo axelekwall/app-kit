@@ -23,9 +23,27 @@ nothing from the apps' data. Code and docs here describe the shared standard onl
 
 ## Commands
 
-Nothing is set up yet. Phase 0's first pull request adds `bun run setup`, `verify` and
-`verify:full`, `scripts/pr-reviews.ts` and CI. Until then, the commands named in the workflow
-below do not exist. Say so instead of skipping them silently.
+```
+bun run setup            idempotent bootstrap: install, and activate the pre-push hook
+bun run verify           Biome + TypeScript + tests. The fast gate.
+bun run verify:full      the full gate, what CI runs. The same as verify until there is more
+bun run check            Biome, reporting only
+bun run check:fix        apply formatting and lint fixes
+bun run typecheck        types only (TypeScript 7's native compiler)
+bun test                 tests only
+```
+
+A test holds this block and `package.json` together. The Bun version is pinned in
+`.bun-version` (what CI installs), `packageManager` and `mise.toml`; a test holds the three
+equal. Run commands on the pinned Bun: if `bun --version` does not match `.bun-version` (an
+agent's shell often skips mise's activation), run them through `mise exec -- bun …`.
+
+`bun scripts/pr-reviews.ts [<pr>…] [--all] [--json]` lists unresolved review threads (Codex's
+included) for the named pull requests, or for every open one. `bun scripts/pr-reviews.ts reply
+<thread-id> <body>` answers one.
+
+CI (`.github/workflows/ci.yml`) runs `verify:full` in a job named `verify`, the check branch
+protection on `main` requires.
 
 ## Rules
 

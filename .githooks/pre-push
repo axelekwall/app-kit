@@ -1,0 +1,33 @@
+#!/bin/sh
+# Refuse direct pushes to main.
+#
+# Work goes on a branch behind a pull request, so CI checks it before it lands.
+# This is a convention, not a security control. Activated by `bun run setup`,
+# which sets core.hooksPath.
+
+protected_branch=main
+
+if [ "${ALLOW_PUSH_TO_MAIN:-}" = "1" ]; then
+  exit 0
+fi
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "refs/heads/$protected_branch" ]; then
+    cat >&2 <<MSG
+
+BLOCKED: direct push to '$protected_branch'.
+
+Work belongs on a branch behind a pull request:
+
+    git switch -c <branch>
+    git push -u origin <branch>
+    gh pr create
+
+The owner can push to '$protected_branch' anyway with ALLOW_PUSH_TO_MAIN=1.
+
+MSG
+    exit 1
+  fi
+done
+
+exit 0

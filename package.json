@@ -1,0 +1,24 @@
+{
+  "name": "@axelekwall/app-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.4",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "setup": "bun install && git config core.hooksPath .githooks",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "verify": "bun run check && bun run typecheck && bun run test",
+    "verify:full": "bun run verify"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12",
+    "@types/bun": "1.4.3",
+    "typescript": "7.0.2"
+  }
+}

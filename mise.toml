@@ -1,0 +1,5 @@
+# For contributors who manage runtimes with mise: pins Bun for this directory,
+# over a global `bun = "latest"`. `.bun-version` is the source CI reads;
+# tests/bun-version.test.ts holds this, it and `packageManager` to one version.
+[tools]
+bun = "1.4.4"
