@@ -15,6 +15,9 @@
  * lists what is left, with the thread id a reply needs. It also prints each
  * pull request's latest Codex review or comment, which says when Codex found
  * nothing.
+ *
+ * Managed by app-kit: `app-kit sync` writes this file and a test fails when it
+ * drifts. Change it in the app-kit repository.
  */
 
 const CODEX = "chatgpt-codex-connector"

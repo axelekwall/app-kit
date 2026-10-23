@@ -37,3 +37,24 @@ One entry per contested choice: what was picked and why. Agents add entries with
   only allows more.
 - **`verify:full` stays equal to `verify`.** The consumer test needs one offline-cacheable
   `bun install` and takes about a second, so it runs in `bun test`.
+
+## D3 — app-kit's own files are the canonical shared content
+
+**Date:** 2026-10-23 · **Status:** accepted-by-default
+
+- **No template copies.** The shared blocks are the `template:agent-workflow` blocks in
+  app-kit's own `AGENTS.md` and `CLAUDE.md`, and each managed file is app-kit's own file at the
+  same path. `app-kit sync` copies them from the installed package. A separate `workflow/`
+  directory would have held a second copy of every file inside app-kit, and `bun test` would
+  have run the template copies of the two managed tests. Only files that differ per app
+  (`.claude/settings.json` with an app's extra entries, and the app's `ci.yml`) are generated.
+- **The managed files:** `scripts/pr-reviews.ts`, `.githooks/pre-push`, `.claude/settings.json`,
+  `tests/bun-version.test.ts` and `tests/agents-commands.test.ts`, which both apps already
+  carry, the drift test, and the app's `ci.yml`. Each says it is managed, where its format
+  allows a comment.
+- **The blocks take no variables.** Their app-specific wording was rewritten instead: the review
+  step names "the rules above" rather than bikestack's persistence and layering rules; the
+  dev-server bullet applies "where the repository has one"; and the guard paragraph says the
+  owner protects `main` where the forge allows it and the agreement holds where it does not,
+  without a decision number. The apps are private repositories on a plan with no branch
+  protection, and each records that in its own log (bikestack D21, homeflow D11).

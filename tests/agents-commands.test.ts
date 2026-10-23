@@ -6,6 +6,9 @@
  * and a documented command that no longer exists sends the reader after a
  * script that is not there. `bun test` is written as itself in the block,
  * because that is how it is run.
+ *
+ * Managed by app-kit: `app-kit sync` writes this file and a test fails when it
+ * drifts. Change it in the app-kit repository.
  */
 
 import { describe, expect, test } from "bun:test"

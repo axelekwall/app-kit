@@ -5,6 +5,9 @@
  * declares, and `mise.toml` is what a contributor's version manager selects for
  * this directory. Bumping one and forgetting another runs the suite locally on a
  * Bun that CI never sees.
+ *
+ * Managed by app-kit: `app-kit sync` writes this file and a test fails when it
+ * drifts. Change it in the app-kit repository.
  */
 
 import { describe, expect, test } from "bun:test"
