@@ -53,3 +53,5 @@ Active: Claude Code (Opus 5.5) on the owner's Mac, building PRs 1 to 6.
   the agent-workflow content.
 - 2026-10-23: PR 3, the shared blocks and managed files made generic in place (D3). Next:
   PR 4, `app-kit sync` and `app-kit check`.
+- 2026-10-23: PR 4, `app-kit sync` and `app-kit check` (D4), with `tests/app-kit.test.ts` as the
+  managed drift test and app-kit synced from itself. Next: PR 5, the reusable workflow.

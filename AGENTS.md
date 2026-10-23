@@ -31,6 +31,8 @@ bun run check            Biome, reporting only
 bun run check:fix        apply formatting and lint fixes
 bun run typecheck        types only (TypeScript 7's native compiler)
 bun test                 tests only
+bun run kit:sync         app-kit sync on this repository: rewrite the shared blocks and managed
+                         files from its own copies (a no-op unless app-kit.json changed)
 ```
 
 A test holds this block and `package.json` together. The Bun version is pinned in
@@ -41,6 +43,13 @@ agent's shell often skips mise's activation), run them through `mise exec -- bun
 `bun scripts/pr-reviews.ts [<pr>…] [--all] [--json]` lists unresolved review threads (Codex's
 included) for the named pull requests, or for every open one. `bun scripts/pr-reviews.ts reply
 <thread-id> <body>` answers one.
+
+The shared agent workflow is app-kit's own `template:agent-workflow` blocks in `AGENTS.md` and
+`CLAUDE.md` and its managed files (D3): `.githooks/pre-push`, `scripts/pr-reviews.ts`,
+`.claude/settings.json` and three tests, `tests/agents-commands.test.ts`,
+`tests/bun-version.test.ts` and `tests/app-kit.test.ts`. Editing one here changes it for every
+app at the next release. `app-kit sync` (`src/cli/`) writes them into an app; `app-kit.json`
+holds the app's values, and `tests/app-kit.test.ts` fails on drift.
 
 CI (`.github/workflows/ci.yml`) runs `verify:full` in a job named `verify`, the check branch
 protection on `main` requires.
