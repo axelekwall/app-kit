@@ -13,8 +13,9 @@ const { version } = (await Bun.file(`${ROOT}/package.json`).json()) as { version
 const CHANGELOG = await Bun.file(`${ROOT}/CHANGELOG.md`).text()
 
 describe("the package version", () => {
-  test("is SemVer without a range", () => {
-    expect(version).toMatch(/^\d+\.\d+\.\d+$/)
+  // Plain MAJOR.MINOR.PATCH: tags are `vX.Y.Z`, with no prerelease or build part.
+  test("is a SemVer release version without leading zeroes", () => {
+    expect(version).toMatch(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)
   })
 
   test("has its section in CHANGELOG.md, unless it is the unreleased 0.0.0", () => {
