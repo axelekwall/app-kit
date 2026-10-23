@@ -1,0 +1,6 @@
+[install]
+# Isolated linker prevents reliance on undeclared transitive dependencies.
+linker = "isolated"
+
+# Pin exact versions rather than ranges, for reproducible agent and CI environments.
+exact = true

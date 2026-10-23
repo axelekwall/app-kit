@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to a pull request supersedes its in-flight run. Runs on main are
+# never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # Branch protection on main requires a check named `verify`. Renaming this job
+  # means changing the protection rule.
+  verify:
+    runs-on: ubuntu-latest
+    # The apps run their gate far from UTC so anything that leans on the host's
+    # zone fails. The shared code is held to the same.
+    env:
+      TZ: America/Los_Angeles
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      # Biome, TypeScript and the tests: the commands used locally.
+      - run: bun run verify:full
