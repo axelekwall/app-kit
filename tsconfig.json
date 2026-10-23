@@ -1,23 +1,4 @@
 {
-  "compilerOptions": {
-    "lib": ["ESNext"],
-    "target": "ESNext",
-    "module": "Preserve",
-    "moduleResolution": "bundler",
-    "moduleDetection": "force",
-    "types": ["bun"],
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noFallthroughCasesInSwitch": true,
-    "exactOptionalPropertyTypes": true,
-
-    "skipLibCheck": true
-  },
+  "extends": "./config/tsconfig.base.json",
   "include": ["src", "tests", "scripts"]
 }
