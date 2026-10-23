@@ -56,10 +56,9 @@ protection on `main` requires.
 
 <!--
   template:agent-workflow begin
-  Everything from here to "template:agent-workflow end" belongs to the shared agent-workflow
-  template and is kept free of app-specific content, so it can be lifted into the shared
-  app-kit package and written back by its sync (homelab/docs/app-kit-plan.md). App-specific
-  rules go in the sections above.
+  Everything from here to "template:agent-workflow end" is written by `app-kit sync` from the
+  @axelekwall/app-kit package, and a test fails when it drifts. Change it in the app-kit
+  repository. App-specific rules go in the sections above.
 -->
 
 ## Working agreement
@@ -97,8 +96,9 @@ request descriptions: short bullets of what changed and why, then "Decisions" if
 plan section.
 
 **No agent-specific guard.** These rules bind every agent (Claude Code, Codex, agy) as written.
-The owner protects `main` on the forge: a change needs a pull request with passing CI, and
-force pushes and deletion are refused (D21). Per-tool permission lists, such as
+Where the forge allows it, the owner protects `main`: a change needs a pull request with passing
+CI, and force pushes and deletion are refused. Where it does not, the rule rests on this
+agreement, and the pre-push hook only catches mistakes. Per-tool permission lists, such as
 `.claude/settings.json`, only spare prompts for routine commands; they are for speed, not
 safety, and changing them is a configuration change that needs the owner's approval.
 
@@ -108,9 +108,9 @@ Work arrives as stacks of pull requests: each targets the branch of the one belo
 first targets `main`. One logical change per pull request.
 
 For each pull request: implement → `bun run verify:full` → review your own diff (correctness,
-the app contract, the persistence and layering rules above) → check anything with a UI or HTTP
-surface against the running dev server (`playwright-cli` in its own `-s=<name>` session, closed
-afterwards, or `curl`) → commit → push → open the pull request → update the plan's progress log.
+the app contract, the rules above) → check anything with a UI or HTTP surface against the
+running dev server (`playwright-cli` in its own `-s=<name>` session, closed afterwards, or
+`curl`) → commit → push → open the pull request → update the plan's progress log.
 Codex reviews each pushed pull request within minutes; do not wait for it. Before handing
 over, run `bun scripts/pr-reviews.ts` across the stack: fix valid findings in the pull request
 they belong to (restack with rebase and `--force-with-lease`), and answer invalid ones with a

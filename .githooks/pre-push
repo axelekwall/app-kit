@@ -4,6 +4,9 @@
 # Work goes on a branch behind a pull request, so CI checks it before it lands.
 # This is a convention, not a security control. Activated by `bun run setup`,
 # which sets core.hooksPath.
+#
+# Managed by app-kit: `app-kit sync` writes this file and a test fails when it
+# drifts. Change it in the app-kit repository.
 
 protected_branch=main
 
