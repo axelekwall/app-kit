@@ -161,14 +161,17 @@ through. The list keeps routine work prompt-free and now closes those forms.
 - **Deny rules, not a narrower allow list.** Claude Code evaluates deny, then ask, then allow,
   and an allow rule cannot carve an exception out of a deny. So `git push *` stays allowed and
   deny rules refuse `--force` and `-f` in any position, a `+` refspec, `--delete`, `-d`, a `:`
-  refspec, `--mirror`, `--prune`, `--tags`, `--follow-tags` and `--no-verify`.
+  refspec, `--mirror`, `--prune`, `--tags`, `--follow-tags` and `--no-verify`, each in the
+  positions git accepts it.
   `--force-with-lease` stays allowed: the working agreement allows it on the agent's own
   branches, and the `--force` rules match the flag as a whole word, not as a prefix.
 - **The stash.** `git stash *` becomes `push`, `list`, `show` and `apply`; `drop` and `clear`
-  are denied. `pop` and a bare `git stash` prompt, since pop drops an entry another session may
-  own.
-- **`git switch` that discards changes** (`-f`, `--force`, `--discard-changes`, and
-  `--force-create`, which resets a branch) is denied; the rest of `git switch *` stays allowed.
+  are denied rather than asked, so an agent cannot drop even its own entry: an entry left
+  behind costs nothing, and the owner clears the stash. `pop` and a bare `git stash` prompt,
+  since pop drops an entry another session may own.
+- **`git switch` that discards changes or resets a branch** (`-f`, `--force`,
+  `--discard-changes`, `-C` and `--force-create`) is denied, as is `git checkout -b` with `-f`
+  or `--force`; the rest of `git switch *` and `git checkout -b *` stays allowed.
 - **`gh pr edit` and `gh pr comment` stay allowed on any pull request.** The agent edits its own
   stacked pull requests constantly (retargeting, descriptions, the stack summary), and a rule
   cannot tell its pull requests from anyone else's; the working agreement limits them to its
@@ -181,7 +184,8 @@ through. The list keeps routine work prompt-free and now closes those forms.
   form, because a deny rule does not match past `mise exec --`.
 - **The matcher's limits.** The rules match the command text after Claude Code splits compound
   commands and strips wrappers such as `timeout`. They do not match `git -C . push`, combined
-  short flags such as `-uf`, or a tag pushed by name, and they are not a security boundary.
+  short flags such as `-uf`, or a tag pushed by name, and they are not a security boundary;
+  `CLAUDE.md`'s block says so where agents read it.
   A rule ending in `:*` is Claude Code's legacy prefix form, so the `:` refspec rule ends in
   `:**`; Claude Code prints a startup notice for it saying it matches as a wildcard.
 - **Checked twice.** `tests/permissions.test.ts` classifies routine and irreversible commands
