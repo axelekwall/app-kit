@@ -197,3 +197,38 @@ through. The list keeps routine work prompt-free and now closes those forms.
 - **The sync writes JSON as Biome formats it.** A list short enough for one line is written on
   one line, as Biome's formatter collapses it; before, a short `ask` list would have failed
   every app's `bun run check` after the sync.
+
+## D10 — The rules both apps follow move into the shared blocks
+
+**Date:** 2026-10-27 · **Status:** accepted-by-default
+
+Adopting `v0.1.1`, homeflow kept a section of rules that differ from the shared text, and
+bikestack moved app-specific text out of the blocks. The rules both apps follow are now shared;
+what stays different is named by the app, in its own sections above the block, which the
+shared text defers to.
+
+- **The gate:** `verify` before every commit and nothing red committed, `verify:full` before a
+  pull request, and the gate's output shown when reporting rather than a statement that it
+  passed.
+- **Worktrees:** one per stack, from an up-to-date `origin/main`, with `setup` and `verify`
+  first. A worktree inside the repository needs its own `bun run setup`, since Bun resolves the
+  parent checkout's `node_modules` otherwise; `CLAUDE.md` says so beside its native-worktree
+  bullet.
+- **Merging a stack:** after a squash merge the next branch is replayed with
+  `git rebase --onto`, since it still holds the merged commits under their old hashes. A stack
+  GitHub tracks as stacked pull requests merges in one action from its top pull request
+  instead. Both are the owner's merges; the agent replays.
+- **The browser check:** 1280 and 390 pixels, light and dark, the keyboard path through every
+  new control, on the worktree's own server and database. The tool is the one the app names,
+  `playwright-cli` where it names none: bikestack uses `playwright-cli`, homeflow's current
+  brief another tool.
+- **Pull request descriptions** also name the plan section implemented and, for a UI change,
+  what the browser check covered, and reference no local, untracked files.
+- **The decision log** defaults to `docs/decisions.md` with the next free D-number, unless the
+  app names another log and its numbering above the block. Homeflow keeps per-slice logs and
+  reserves numbers on `main` first.
+- **The dev-server bullet** overrides the global rule for other long-running processes too.
+- **The block's first section says where the workflow comes from**: the managed files,
+  `kit:sync`, `app-kit.json` and how to upgrade, so each app's copy of that list cannot go
+  stale. The `pr-reviews.ts` usage moved into "Stacks and handover" for the same reason. Each
+  app drops its hand-written copies of both.

@@ -78,3 +78,7 @@ Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, bui
 - 2026-10-27: PR 2, narrower shared permissions: deny rules for the irreversible forms of the
   allowed `git` and `gh` commands, ask rules for widened `gh api` reads, and the sync writing
   JSON as Biome formats it (D9). Next: the shared workflow rules both apps follow.
+- 2026-10-27: PR 3, the rules both apps follow, in the shared blocks: `verify` before every
+  commit and the output shown, one worktree per stack and its own `setup`, replaying a stack
+  after a squash merge, the browser check, the pull request description, the decision log the
+  app names, and the block's own account of the kit (D10). Next: documentation fixes.
