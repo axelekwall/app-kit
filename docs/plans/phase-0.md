@@ -82,3 +82,8 @@ Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, bui
   commit and the output shown, one worktree per stack and its own `setup`, replaying a stack
   after a squash merge, the browser check, the pull request description, the decision log the
   app names, and the block's own account of the kit (D10). Next: documentation fixes.
+- 2026-10-27: PR 4, documentation fixes: the README's adoption and upgrade steps (a dev
+  dependency, app-specific text out of the blocks first, the options Bun reads kept in the
+  app's `tsconfig.json`, Dependabot ignoring the kit's workflow), D2's note on Bun, D11 (the
+  workflow stays called by tag, the owner's decision) and the reworded `packages: write`
+  comment in the generated `ci.yml`. Next: release `0.1.2`.
