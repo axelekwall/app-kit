@@ -5,8 +5,10 @@
  * Commands are classified the way Claude Code's documentation describes its
  * Bash rules: deny, then ask, then allow; a `*` stands for any text; and a
  * trailing ` *` that is a rule's only wildcard also matches the bare command.
- * A rule ending in `:*` is the legacy prefix form, so a rule that means "a
- * refspec starting with a colon" ends in `:**` instead.
+ * A rule ending in `:*` is the legacy prefix form; beside another `*` Claude
+ * Code reads the whole rule as a literal prefix, as its startup notice for such
+ * a rule says. So the rule for a refspec starting with a colon ends in `:**`,
+ * and the model below makes a `:*` version of it fail the deny cases.
  * Claude Code also splits compound commands and strips wrappers such as
  * `timeout` before matching, which this model leaves out: every command here
  * is a single one.
@@ -65,6 +67,7 @@ const EXPECTED: Record<Outcome, string[]> = {
     "git stash apply 3f2a",
     "git switch -c feat/x",
     "git switch main",
+    "git checkout -b feat/x origin/main",
     "git rebase --onto main old-base feat/x",
     "gh pr edit 12 --base main",
     "gh pr comment 12 --body-file summary.md",
@@ -89,6 +92,7 @@ const EXPECTED: Record<Outcome, string[]> = {
     "git push --delete origin feat/x",
     "git push -d origin feat/x",
     "git push origin -d feat/x",
+    "git push origin feat/x -d",
     "git push origin :feat/x",
     "git push --mirror origin",
     "git push --prune origin",
@@ -102,6 +106,9 @@ const EXPECTED: Record<Outcome, string[]> = {
     "git switch -f main",
     "git switch --force main",
     "git switch main -f",
+    "git switch -C main origin/main",
+    "git switch --no-track -C main origin/main",
+    "git checkout -b feat/x -f",
     "gh pr comment 12 --delete-last",
     "bun publish",
     "mise exec -- bun publish --dry-run",

@@ -169,7 +169,8 @@ const LINE_WIDTH = 100
 /**
  * `value` as JSON laid out the way Biome formats it, so a synced file passes the
  * app's own check: two-space indents, and a list of strings on one line when it
- * fits, since Biome collapses those.
+ * fits, since Biome collapses those. Lists of anything else stay expanded, which
+ * matches Biome only because the settings hold none.
  */
 export function biomeJson(value: unknown): string {
   const text = JSON.stringify(value, null, 2)

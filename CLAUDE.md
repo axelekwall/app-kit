@@ -26,10 +26,11 @@
 - Prefer Claude Code's native worktrees (under `.claude/worktrees/`).
 - Routine `bun`, local `git`, `gh pr`, read-only `gh api` and `playwright-cli` calls are
   allowlisted in `.claude/settings.json` so they run without a prompt. Its deny rules refuse
-  the irreversible forms among them: force pushes (`--force-with-lease` stays allowed), remote
-  deletes and tag pushes, pushes that skip the hook, `git stash drop` and `clear` on the stash
-  every worktree shares, and switches that discard changes. The owner runs those. The rules
-  match command text, so they are for speed and against slips, not a boundary: the working
-  agreement in `AGENTS.md` sets what you may do.
+  the usual spellings of the irreversible forms among them: force pushes (`--force-with-lease`
+  stays allowed), remote deletes, `--tags` pushes, pushes that skip the hook, `git stash drop`
+  and `clear` on the stash every worktree shares, and switches that discard changes or reset a
+  branch. The owner runs those. The rules match command text, so other spellings get through
+  (a tag pushed by name, `git -C . push`): they are for speed and against slips, not a
+  boundary, and the working agreement in `AGENTS.md` sets what you may do.
 
 <!-- template:agent-workflow end -->
