@@ -40,8 +40,8 @@ A test holds this block and `package.json` together. The Bun version is pinned i
 equal. Run commands on the pinned Bun: if `bun --version` does not match `.bun-version` (an
 agent's shell often skips mise's activation), run them through `mise exec -- bun …`.
 
-`bun scripts/pr-reviews.ts [<pr>…] [--all] [--json]` lists unresolved review threads (Codex's
-included) for the named pull requests, or for every open one. `bun scripts/pr-reviews.ts reply
+`bun scripts/pr-reviews.ts [<pr>…] [--all] [--json]` lists unresolved review threads for the
+named pull requests, or for every open one. `bun scripts/pr-reviews.ts reply
 <thread-id> <body>` answers one.
 
 The shared agent workflow is app-kit's own `template:agent-workflow` blocks in `AGENTS.md` and
@@ -125,13 +125,14 @@ For each pull request: implement → `bun run verify:full` → review your own d
 the app contract, the rules above) → check anything with a UI or HTTP surface against the
 running dev server (`playwright-cli` in its own `-s=<name>` session, closed afterwards, or
 `curl`) → commit → push → open the pull request → update the plan's progress log.
-Codex reviews each pushed pull request within minutes; do not wait for it. Before handing
-over, run `bun scripts/pr-reviews.ts` across the stack: fix valid findings in the pull request
-they belong to (restack with rebase and `--force-with-lease`), and answer invalid ones with a
+No automated reviewer runs on pull requests, so your own review of the diff is the only one
+before the owner's: make it a real pass, not a skim. Before handing over, run
+`bun scripts/pr-reviews.ts` across the stack: fix valid findings in the pull request they
+belong to (restack with rebase and `--force-with-lease`), and answer invalid ones with a
 one-line reason.
 
 When the stack is ready, post a **stack summary** comment on its top pull request: what it
-covers, how it was verified, the decisions logged, Codex's findings and how each was handled,
+covers, how it was verified, the decisions logged, review findings and how each was handled,
 unsigned commits, and the merge order (bottom-up, squash merges; after each merge, retarget the
 next pull request to `main`).
 

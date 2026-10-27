@@ -9,18 +9,13 @@
  *   bun scripts/pr-reviews.ts reply <thread-id> <body>
  *                                          reply to a review thread
  *
- * Codex (`chatgpt-codex-connector[bot]`) reviews each pushed pull request. Its
- * findings arrive as review threads, and a finding is handled when it is fixed
- * in the pull request it belongs to or answered with a one-line reason. This
- * lists what is left, with the thread id a reply needs. It also prints each
- * pull request's latest Codex review or comment, which says when Codex found
- * nothing.
+ * A review thread is handled when it is fixed in the pull request it belongs
+ * to or answered with a one-line reason. This lists what is left, with the
+ * thread id a reply needs.
  *
  * Managed by app-kit: `app-kit sync` writes this file and a test fails when it
  * drifts. Change it in the app-kit repository.
  */
-
-const CODEX = "chatgpt-codex-connector"
 
 interface Comment {
   readonly author: { readonly login: string } | null
@@ -44,13 +39,6 @@ interface PullRequest {
   readonly headRefName: string
   readonly baseRefName: string
   readonly reviewThreads: { readonly nodes: readonly Thread[] }
-  readonly reviews: {
-    readonly nodes: readonly (Comment & {
-      readonly state: string
-      readonly submittedAt: string | null
-    })[]
-  }
-  readonly comments: { readonly nodes: readonly (Comment & { readonly createdAt: string })[] }
 }
 
 const QUERY = `
@@ -64,8 +52,6 @@ query($owner: String!, $name: String!, $number: Int!) {
           comments(first: 50) { nodes { author { login } body url } }
         }
       }
-      reviews(last: 20) { nodes { author { login } state body url submittedAt } }
-      comments(last: 50) { nodes { author { login } body url createdAt } }
     }
   }
 }`
@@ -120,10 +106,6 @@ async function openNumbers(): Promise<number[]> {
   return (JSON.parse(out) as { number: number }[]).map((pr) => pr.number).sort((a, b) => a - b)
 }
 
-function isCodex(comment: Comment): boolean {
-  return comment.author?.login.replace(/\[bot\]$/, "") === CODEX
-}
-
 function excerpt(body: string, length = 300): string {
   const flat = body
     .replace(/<[^>]+>/g, "")
@@ -172,29 +154,18 @@ const report = []
 for (const number of numbers) {
   const pr = await pullRequest(owner, name, number)
   const threads = pr.reviewThreads.nodes.filter((thread) => includeResolved || !thread.isResolved)
-  // Reviews and comments are two lists; the latest note is the latest across both.
-  const codexNotes = [
-    ...pr.reviews.nodes.map((review) => ({ ...review, at: review.submittedAt ?? "" })),
-    ...pr.comments.nodes.map((comment) => ({ ...comment, at: comment.createdAt })),
-  ]
-    .filter((note) => isCodex(note) && note.body.trim() !== "")
-    .sort((a, b) => a.at.localeCompare(b.at))
-  report.push({ pr, threads, latestCodexNote: codexNotes.at(-1) ?? null })
+  report.push({ pr, threads })
 }
 
 if (asJson) {
   console.log(
     JSON.stringify(
-      report.map(({ pr, threads, latestCodexNote }) => ({
+      report.map(({ pr, threads }) => ({
         number: pr.number,
         title: pr.title,
         url: pr.url,
         head: pr.headRefName,
         base: pr.baseRefName,
-        latestCodexNote: latestCodexNote && {
-          body: latestCodexNote.body,
-          url: latestCodexNote.url,
-        },
         threads: threads.map((thread) => ({
           id: thread.id,
           resolved: thread.isResolved,
@@ -214,17 +185,14 @@ if (asJson) {
   )
 } else {
   if (report.length === 0) console.log("No open pull requests.")
-  for (const { pr, threads, latestCodexNote } of report) {
+  for (const { pr, threads } of report) {
     console.log(`\n#${pr.number} ${pr.title}  (${pr.headRefName} → ${pr.baseRefName})\n${pr.url}`)
-    if (latestCodexNote !== null) console.log(`  Codex: ${excerpt(latestCodexNote.body, 200)}`)
-    else console.log("  Codex: no review yet")
     if (threads.length === 0) console.log("  No unresolved review threads.")
     for (const thread of threads) {
       const [first, ...replies] = thread.comments.nodes
       const flags = [
         thread.isResolved ? "resolved" : "unresolved",
         thread.isOutdated ? "outdated" : null,
-        first !== undefined && isCodex(first) ? "codex" : null,
       ].filter(Boolean)
       console.log(
         `\n  ${thread.path}:${thread.line ?? "?"}  [${flags.join(", ")}]  thread ${thread.id}`,
