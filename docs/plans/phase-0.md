@@ -4,8 +4,9 @@ The first phase of `../homelab/docs/app-kit-plan.md`. It packages the layer that
 stable (the agent workflow, the configuration bases and CI) and proves the delivery path
 before any app code moves. No application code is extracted in this phase.
 
-**Done when** bikestack's CI is green on `v0.1.0`, and a `v0.1.1` bump has gone through the
-whole cycle: release, tag, bump in bikestack, sync, verify.
+**Done when** bikestack's CI is green on the kit, and a later release has gone through the
+whole cycle: release, tag, bump in bikestack, sync, verify. Bikestack adopted `v0.1.1`
+directly, so the round trip is the bump to `v0.1.2`, made in homeflow at the same time.
 
 ## Stack in this repository
 
@@ -45,8 +46,7 @@ behaviour. Then a `v0.1.1` round trip.
 
 Update after every pull request: what is done, what is next, and the `Active:` line.
 
-Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, building the
-0.1.2 stack.
+Active: none.
 
 - 2026-10-23: repository created with this plan, the README, the MIT licence, the agent setup
   copied from bikestack and D1. Next: PR 1, tooling.
@@ -87,3 +87,7 @@ Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, bui
   app's `tsconfig.json`, Dependabot ignoring the kit's workflow), D2's note on Bun, D11 (the
   workflow stays called by tag, the owner's decision) and the reworded `packages: write`
   comment in the generated `ci.yml`. Next: release `0.1.2`.
+- 2026-10-27: PR 5, release `0.1.2`: the bump and its `CHANGELOG.md` section, with the upgrade
+  notes for bikestack and homeflow. The stack is ready for the owner. Next, after it is merged
+  and `v0.1.2` is tagged: both apps bump to `v0.1.2` (wave 3), which completes the phase 0 round
+  trip.

@@ -5,7 +5,7 @@ SQLite database, a React SPA, and coding agents doing most of the work. Each app
 app-kit as a git dependency pinned to a tag. Bumping the tag brings it the shared code,
 configuration, CI and agent workflow.
 
-**Status:** `0.1.1` carries the agent workflow, the configuration bases and CI; no application
+**Status:** `0.1.2` carries the agent workflow, the configuration bases and CI; no application
 code yet. See [docs/plans/phase-0.md](docs/plans/phase-0.md) and [CHANGELOG.md](CHANGELOG.md).
 The first apps are bikestack and homeflow.
 
@@ -31,7 +31,7 @@ Code moves in once two apps run a copy of it. Domain code and small values such 
 ```jsonc
 // package.json
 "devDependencies": {
-  "@axelekwall/app-kit": "github:axelekwall/app-kit#v0.1.1"
+  "@axelekwall/app-kit": "github:axelekwall/app-kit#v0.1.2"
 }
 ```
 
@@ -39,7 +39,7 @@ Code moves in once two apps run a copy of it. Domain code and small values such 
 # .github/workflows/ci.yml, written by `app-kit sync` from app-kit.json
 jobs:
   ci:
-    uses: axelekwall/app-kit/.github/workflows/image.yml@v0.1.1
+    uses: axelekwall/app-kit/.github/workflows/image.yml@v0.1.2
 ```
 
 The checks then report as `ci / verify`, `ci / image-smoke` and `ci / publish`.

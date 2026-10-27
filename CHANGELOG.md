@@ -4,6 +4,101 @@ One section per release, newest first. Versions are SemVer; while in `0.x`, a br
 bumps the minor version. "Upgrade" lists what an app must do when it bumps to that release,
 besides bumping the tag and running `bun install` and `bun run kit:sync`.
 
+## 0.1.2
+
+The rules both apps follow, a fresh-context review, and narrower shared permissions (D8 to D11).
+
+- **A fresh-context review** after the agent's own pass: the diff goes to a reviewer with a
+  fresh context, briefed with the plan section and the rules but not the author's conclusions,
+  and the stack summary lists every finding and how it was handled (D8). In `CLAUDE.md` it is
+  a subagent started with the Agent tool.
+- **Shared workflow rules** (D10): `verify` before every commit and the gate's output shown in
+  reports; one worktree per stack, with its own `bun run setup` when it sits inside the
+  repository; replaying a stack with `git rebase --onto` after a squash merge, or merging a
+  stack GitHub tracks in one action; the browser check at 1280 and 390 pixels, light and dark,
+  and on the keyboard, on the worktree's own database, with the tool the app names; pull
+  request descriptions that name the plan section and the browser check; the decision log the
+  app names; and the dev-server override covering other long-running processes.
+- **The block's first section, "The shared workflow"**, says what app-kit owns, how `kit:sync`
+  and `app-kit.json` work and how to upgrade. The `scripts/pr-reviews.ts` usage moved into
+  "Stacks and handover".
+- **`.claude/settings.json` refuses the irreversible forms of routine commands** (D9), listed
+  below. `app-kit sync` keeps the package's `ask` and `deny` rules beside the app's extra
+  `allow` entries, and writes the file as Biome formats it.
+- **The generated `ci.yml`** words the comment on `packages: write` for the image jobs on or
+  off. Its call to `image.yml` stays pinned by tag (D11).
+- **The README** carries the adoption and upgrade steps, with two additions: the `tsconfig.json`
+  options Bun reads (`jsx`, `jsxImportSource`, `paths`) stay in the app, since Bun ignores an
+  `extends` by package name (D2), and Dependabot ignores `axelekwall/app-kit*`.
+
+### Permission changes
+
+In the shared `.claude/settings.json`, which `kit:sync` writes into each app:
+
+- **Removed from `allow`:** `Bash(git stash *)`.
+- **Added to `allow`:** `Bash(git stash push *)`, `Bash(git stash list *)`,
+  `Bash(git stash show *)`, `Bash(git stash apply *)`. A bare `git stash` and `git stash pop`
+  now prompt.
+- **New `ask`:** `Bash(gh api * -X*)`, `Bash(gh api * --method*)`, `Bash(gh api *graphql*)`: a
+  `GET` widened by a later method flag, or a GraphQL call, prompts instead of running.
+- **New `deny`:**
+  - force pushes: `Bash(git push --force *)`, `Bash(git push * --force)`,
+    `Bash(git push * --force *)`, `Bash(git push -f *)`, `Bash(git push * -f)`,
+    `Bash(git push * -f *)`, `Bash(git push * +*)`. `--force-with-lease` is still allowed;
+  - remote deletes: `Bash(git push *--delete*)`, `Bash(git push -d *)`, `Bash(git push * -d *)`,
+    `Bash(git push * :**)`, `Bash(git push *--mirror*)`, `Bash(git push *--prune*)`;
+  - tag pushes and skipping the hook: `Bash(git push *--tags*)`,
+    `Bash(git push *--follow-tags*)`, `Bash(git push *--no-verify*)`;
+  - the shared stash: `Bash(git stash drop *)`, `Bash(git stash clear *)`;
+  - switches that discard changes: `Bash(git switch *--discard-changes*)`,
+    `Bash(git switch *--force*)`, `Bash(git switch -f *)`, `Bash(git switch * -f)`,
+    `Bash(git switch * -f *)`;
+  - `Bash(gh pr comment *--delete-last*)`, `Bash(bun publish *)` and
+    `Bash(mise exec -- bun publish *)`.
+- **Unchanged:** every other entry, including `Bash(git push *)`, `Bash(bun *)`,
+  `Bash(gh pr edit *)` and `Bash(gh pr comment *)`, and each app's own entries from
+  `app-kit.json`.
+
+Deny rules hold in every permission mode, so the owner runs a refused command in a terminal,
+not through Claude Code in the app. Claude Code prints a startup notice for
+`Bash(git push * :**)` saying it matches as a wildcard, which is the intent.
+
+### Upgrade
+
+Both apps, in the bump pull request:
+
+- Bump the tag to `#v0.1.2`, then `bun install` and `bun run kit:sync`: the blocks,
+  `.claude/settings.json` and `ci.yml` (its tag and one comment) change.
+- Delete the text that the block now carries, which sync does not touch because it is outside
+  the block: the `bun scripts/pr-reviews.ts [<pr>…] …` sentence in the commands section, and
+  the paragraph describing the shared agent workflow, its managed files, `kit:sync`,
+  `app-kit.json` and upgrading.
+- Re-read the app's own sections against the new block and drop what it now says, keeping
+  what still differs. The block defers to the app's own sections on the decision log and the
+  browser tool, so those stay or move there.
+
+Bikestack:
+
+- Its decision log (`docs/decisions.md`, next free D-number) and browser tool (`playwright-cli`)
+  are the block's defaults: nothing to name.
+- The Rules bullet on the self-review's layering and persistence checks: make it cover the
+  fresh-context review's brief too, as those are "the rules to check it against".
+- `CLAUDE.md`'s "In this repository" section stays (the dev server, D21).
+
+Homeflow:
+
+- In "Where Homeflow's practice differs from the shared workflow", drop what the block now
+  says: the gate, the review subagent, worktrees and stacks, pull request descriptions and
+  the browser walk's checklist. Keep the decision log (per-slice logs, numbers reserved on
+  `main` under D18), the plans without a progress log until the next brief, and the brief
+  naming the browser tool; these are what the block defers to.
+- In `CLAUDE.md`'s "Claude-specific, for Homeflow", drop the bullets the block now carries:
+  `bun run setup` in an inside-repository worktree, the review subagent, long-running
+  processes, and the browser bullet.
+- The Bun pin stays at 1.3.13; nothing in this release needs a newer Bun.
+
+An app adopting the kit at this release follows the README's "Adopting the kit" with `#v0.1.2`.
+
 ## 0.1.1
 
 No automated pull request review (D7).
