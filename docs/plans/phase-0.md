@@ -66,3 +66,8 @@ Active: none.
   the public tag and the first run of the image jobs from `image.yml`.
 - 2026-10-27: the owner turned off Codex's automatic review. The shared agent workflow and
   `scripts/pr-reviews.ts` no longer expect it (D7). It reaches the apps with the next release.
+- 2026-10-27: release `0.1.1` prepared (#9, stacked on #8): the bump and its `CHANGELOG.md`
+  section, carrying D7. Bikestack skips `v0.1.0` and adopts `v0.1.1` directly, in its adoption
+  pull request after its open stack merges. The phase 0 round trip is then completed by
+  `v0.1.2`, homeflow's phase 1 differences, bumped in both apps. Next, after #8 and #9 are
+  merged and `v0.1.1` is tagged: bikestack's adoption.

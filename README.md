@@ -5,7 +5,7 @@ SQLite database, a React SPA, and coding agents doing most of the work. Each app
 app-kit as a git dependency pinned to a tag. Bumping the tag brings it the shared code,
 configuration, CI and agent workflow.
 
-**Status:** `0.1.0` carries the agent workflow, the configuration bases and CI; no application
+**Status:** `0.1.1` carries the agent workflow, the configuration bases and CI; no application
 code yet. See [docs/plans/phase-0.md](docs/plans/phase-0.md) and [CHANGELOG.md](CHANGELOG.md).
 The first apps are bikestack and homeflow.
 
@@ -31,7 +31,7 @@ Code moves in once two apps run a copy of it. Domain code and small values such 
 ```jsonc
 // package.json
 "dependencies": {
-  "@axelekwall/app-kit": "github:axelekwall/app-kit#v0.1.0"
+  "@axelekwall/app-kit": "github:axelekwall/app-kit#v0.1.1"
 }
 ```
 
@@ -39,7 +39,7 @@ Code moves in once two apps run a copy of it. Domain code and small values such 
 # .github/workflows/ci.yml
 jobs:
   ci:
-    uses: axelekwall/app-kit/.github/workflows/image.yml@v0.1.0
+    uses: axelekwall/app-kit/.github/workflows/image.yml@v0.1.1
 ```
 
 To upgrade, open one pull request that:
