@@ -18,8 +18,8 @@
   `runtimeArgs: ["PORT=<port>", "bun", "run", "dev"]` and the same `port`, choosing a port no
   other checkout on this machine uses. Never point a pane at another worktree's server: its
   database is that worktree's.
-- For the browser check in `AGENTS.md`, use the tool the repository names, or `playwright-cli`
-  where it names none, in its own `-s=<name>` session, closed when done.
+- For the browser check in `AGENTS.md`, use the tool the repository names. Where it names none,
+  use `playwright-cli` in its own `-s=<name>` session, closed when done.
 - The fresh-context review in `AGENTS.md` is done by a subagent started with the Agent tool.
   Brief it with the diff, the plan section and the rules, not your conclusions, and tell it to
   review only that diff and change nothing.

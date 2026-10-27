@@ -42,10 +42,10 @@ agent's shell often skips mise's activation), run them through `mise exec -- bun
 
 The shared agent workflow is app-kit's own `template:agent-workflow` blocks in `AGENTS.md` and
 `CLAUDE.md` and its managed files (D3), listed in the block's first section. Editing one here
-changes it for every app at the next release. `app-kit sync` (`src/cli/`) writes them into an app; `app-kit.json`
-holds the app's values, and `tests/app-kit.test.ts` fails on drift. When `app-kit.json` has
-`ci` values, sync also writes the app's `.github/workflows/ci.yml`, which calls the reusable
-workflow `.github/workflows/image.yml` at the package's tag.
+changes it for every app at the next release. `app-kit sync` (`src/cli/`) writes them into an
+app; `app-kit.json` holds the app's values, and `tests/app-kit.test.ts` fails on drift. When
+`app-kit.json` has `ci` values, sync also writes the app's `.github/workflows/ci.yml`, which
+calls the reusable workflow `.github/workflows/image.yml` at the package's tag.
 
 CI (`.github/workflows/ci.yml`) runs `verify:full` in a job named `verify`, the check branch
 protection on `main` requires, and runs `image.yml` from the same commit with the image jobs
@@ -94,7 +94,7 @@ implementation decisions.
 **Log decisions.** An implementation decision a later reader could question goes into the
 decision log, in its format, and is listed in the stack summary. The log is
 `docs/decisions.md`, with a new entry under the next free D-number and status
-`accepted-by-default`, unless the sections above name another log and how it numbers entries.
+`accepted-by-default`, unless the sections above name another log, numbering or format.
 
 **Stop and report back, without proceeding, for:**
 
@@ -114,9 +114,9 @@ decision log, in its format, and is listed in the stack summary. The log is
 stack summary.
 
 **Messages.** Conventional commits, ending with a `Co-Authored-By:` line for the agent. Pull
-request descriptions: short bullets of what changed and why, the plan section the change
-implements, then "Decisions" if any, and for a change with a UI what the browser check covered.
-No test plan section, and no references to local, untracked files.
+request descriptions: short bullets of what changed and why, including the plan section the
+change implements and, for a change with a UI, one bullet on what the browser check covered;
+then "Decisions" if any. No test plan section, and no references to local, untracked files.
 
 **No agent-specific guard.** These rules bind every agent (Claude Code, Codex, agy) as written.
 Where the forge allows it, the owner protects `main`: a change needs a pull request with passing
@@ -131,8 +131,9 @@ changing them is a configuration change that needs the owner's approval.
 Work arrives as stacks of pull requests: each targets the branch of the one below it, the
 first targets `main`. One logical change per pull request.
 
-**One worktree per stack**, created from an up-to-date `origin/main`. Run `bun run setup`, then
-`bun run verify`, before changing anything. A worktree inside the repository, as Claude Code's
+**One worktree per stack**, created from an up-to-date `origin/main` for a new stack, or from
+its top branch when resuming one. Run `bun run setup`, then `bun run verify`, before changing
+anything. A worktree inside the repository, as Claude Code's
 native ones are, needs its own `bun run setup` even though commands seem to work without it:
 Bun walks up to the parent checkout's `node_modules` and runs on another checkout's
 dependencies. Each pull request's branch starts from the one below it.
@@ -152,12 +153,6 @@ your reading of the change tends to confirm it. Ask for ranked findings, each wi
 and consequence. Fix the valid ones in the pull request they belong to, and answer the rest
 with a one-line reason.
 
-**The browser check.** Run the change in a browser against the worktree's own dev server and
-database (seeded where the repository can seed one), never another checkout's: at 1280 and 390
-pixels wide, in light and dark, and along the keyboard path through every new control. Use the
-browser tool the sections above name, or `playwright-cli` where they name none, in a session of
-its own that you close afterwards.
-
 No automated reviewer runs on pull requests, so your own pass and the fresh-context review are
 the only reviews before the owner's: make both real passes, not skims. Before handing over, run
 `bun scripts/pr-reviews.ts` across the stack: fix valid findings in the pull request they
@@ -166,17 +161,26 @@ one-line reason. `bun scripts/pr-reviews.ts [<pr>…] [--all] [--json]` lists un
 threads for the named pull requests, or for every open one; `bun scripts/pr-reviews.ts reply
 <thread-id> <body>` answers one.
 
+**The browser check.** Run the change in a browser against the worktree's own dev server and
+database (seeded where the repository can seed one), never another checkout's: at 1280 and 390
+pixels wide, in light and dark, and along the keyboard path through every new control. Use the
+browser tool the sections above name, or `playwright-cli` where they name none, in a session of
+its own that you close afterwards.
+
 When the stack is ready, post a **stack summary** comment on its top pull request: what it
 covers, how it was verified, the decisions logged, every review finding (your own pass, the
 fresh-context review and any review thread) and how each was handled, unsigned commits, and
 the merge order.
 
 **Merging a stack.** The owner merges bottom-up with squash merges. A squash merge leaves the
-next branch holding the merged commits under their old hashes, so replay it onto `main` before
-it is merged or built on: `git rebase --onto origin/main <old tip of the merged branch>
-<next branch>`, push with `--force-with-lease`, and retarget its pull request to `main`. A
-stack GitHub tracks as stacked pull requests merges in one action instead: merging its top
-pull request merges every pull request below it.
+branches above it holding the merged commits under their old hashes, so replay them onto
+`main` before the next is merged or built on. From the stack's top branch, run
+`git rebase --onto origin/main <old tip> --update-refs`, where `<old tip>` is the merged pull
+request's last commit (`gh pr view <number> --json headRefOid -q .headRefOid`, which survives
+the deleted branch). `--update-refs` moves every branch in between. Push each moved branch
+with `--force-with-lease`, and retarget the lowest open pull request to `main`. A stack
+created as GitHub stacked pull requests (`gh stack`) merges in one action instead: merging its
+top pull request merges every pull request below it, through GitHub's asynchronous merge.
 
 **One agent per stack at a time.** The plan's progress log has an `Active:` line naming the
 agent and the machine. Check it before starting; set it when you start and clear it when you
