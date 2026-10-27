@@ -4,8 +4,9 @@ The first phase of `../homelab/docs/app-kit-plan.md`. It packages the layer that
 stable (the agent workflow, the configuration bases and CI) and proves the delivery path
 before any app code moves. No application code is extracted in this phase.
 
-**Done when** bikestack's CI is green on `v0.1.0`, and a `v0.1.1` bump has gone through the
-whole cycle: release, tag, bump in bikestack, sync, verify.
+**Done when** bikestack's CI is green on the kit, and a later release has gone through the
+whole cycle: release, tag, bump in bikestack, sync, verify. Bikestack adopted `v0.1.1`
+directly, so the round trip is its bump to `v0.1.2`, which homeflow makes at the same time.
 
 ## Stack in this repository
 
@@ -28,7 +29,8 @@ blocks in its `AGENTS.md` and `CLAUDE.md` and the managed files at their own pat
 Then, in bikestack, as its own one-pull-request stack: the dependency at `v0.1.0`,
 `app-kit.json`, `kit:sync`, the drift test, `extends`, and `ci.yml` calling the reusable
 workflow. The sync must reproduce bikestack's current files, so the pull request changes no
-behaviour. Then a `v0.1.1` round trip.
+behaviour. Then a round trip on the next release. (Bikestack adopted `v0.1.1` directly; the
+round trip is `v0.1.2`.)
 
 ## For the owner
 
@@ -45,8 +47,7 @@ behaviour. Then a `v0.1.1` round trip.
 
 Update after every pull request: what is done, what is next, and the `Active:` line.
 
-Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, building the
-0.1.2 stack.
+Active: none.
 
 - 2026-10-23: repository created with this plan, the README, the MIT licence, the agent setup
   copied from bikestack and D1. Next: PR 1, tooling.
@@ -87,3 +88,7 @@ Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, bui
   app's `tsconfig.json`, Dependabot ignoring the kit's workflow), D2's note on Bun, D11 (the
   workflow stays called by tag, the owner's decision) and the reworded `packages: write`
   comment in the generated `ci.yml`. Next: release `0.1.2`.
+- 2026-10-27: PR 5, release `0.1.2`: the bump and its `CHANGELOG.md` section, with the upgrade
+  notes for bikestack and homeflow. The stack (#10 to #14, each pull request reviewed by a
+  fresh-context subagent and fixed in place) is ready for the owner. Next, after it is merged
+  and `v0.1.2` is tagged: both apps bump to `v0.1.2`, which completes the phase 0 round trip.
