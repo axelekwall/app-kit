@@ -89,5 +89,6 @@ Active: none.
   workflow stays called by tag, the owner's decision) and the reworded `packages: write`
   comment in the generated `ci.yml`. Next: release `0.1.2`.
 - 2026-10-27: PR 5, release `0.1.2`: the bump and its `CHANGELOG.md` section, with the upgrade
-  notes for bikestack and homeflow. The stack is ready for the owner. Next, after it is merged
+  notes for bikestack and homeflow. The stack (#10 to #14, each pull request reviewed by a
+  fresh-context subagent and fixed in place) is ready for the owner. Next, after it is merged
   and `v0.1.2` is tagged: both apps bump to `v0.1.2`, which completes the phase 0 round trip.
