@@ -35,6 +35,12 @@ One entry per contested choice: what was picked and why. Agents add entries with
   `include`, `jsx` and Tailwind parsing stay in each app: they name the app's directories or
   depend on its frontend. `resolveJsonModule`, which only bikestack sets, is in the base; it
   only allows more.
+- **Bun does not follow it** (found adopting `v0.1.1`, 2026-10-27). Bun's bundler and runtime
+  read a relative `extends` but ignore one given by package name: on Bun 1.4.4 a base's
+  `jsxImportSource` applies through a relative path and not through a package-name path. So
+  the base never takes an option Bun reads, and the ones the apps set (`jsx`,
+  `jsxImportSource`, `paths`) stay in each app's own `tsconfig.json`. `tsc` would accept them
+  in the base while Bun's bundle silently changed.
 - **`verify:full` stays equal to `verify`.** The consumer test needs one offline-cacheable
   `bun install` and takes about a second, so it runs in `bun test`.
 
@@ -234,3 +240,18 @@ shared text defers to.
   `kit:sync`, `app-kit.json` and how to upgrade, so each app's copy of that list cannot go
   stale. The `pr-reviews.ts` usage moved into "Stacks and handover" for the same reason. Each
   app drops its hand-written copies of both.
+
+## D11 — The reusable workflow stays called by tag
+
+**Date:** 2026-10-27 · **Status:** accepted (the owner's decision)
+
+The generated `ci.yml` calls `image.yml` at `v<package version>`, not at a commit SHA. An app
+that pins every action by SHA, as bikestack does (its D36), records this call as an exception.
+The tag is the release: sync writes it from the installed package, so bumping the dependency
+and syncing moves the workflow with the rest of the kit, and the drift test fails if `ci.yml`
+alone moves. For the same reason an app's Dependabot ignores `axelekwall/app-kit*`.
+
+The cost: the lockfile pins the package to a commit, but GitHub resolves `uses: …@v0.1.x` when
+the run starts, so a moved tag would change the job that builds and publishes an app's image
+without a commit in the app. The mitigation is D6: tags are created only by the release
+workflow on a merged bump, `main` is protected, and agents never create or push tags.
