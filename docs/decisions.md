@@ -214,18 +214,20 @@ shared text defers to.
   first. A worktree inside the repository needs its own `bun run setup`, since Bun resolves the
   parent checkout's `node_modules` otherwise; `CLAUDE.md` says so beside its native-worktree
   bullet.
-- **Merging a stack:** after a squash merge the next branch is replayed with
-  `git rebase --onto`, since it still holds the merged commits under their old hashes. A stack
-  GitHub tracks as stacked pull requests merges in one action from its top pull request
-  instead. Both are the owner's merges; the agent replays.
+- **Merging a stack:** after a squash merge the branches above it are replayed with
+  `git rebase --onto … --update-refs` from the top branch, since they still hold the merged
+  commits under their old hashes. The old tip comes from the merged pull request's
+  `headRefOid`, which outlives the pruned branch. A stack created as GitHub stacked pull
+  requests merges in one action from its top pull request instead. Both are the owner's
+  merges; the agent replays.
 - **The browser check:** 1280 and 390 pixels, light and dark, the keyboard path through every
   new control, on the worktree's own server and database. The tool is the one the app names,
-  `playwright-cli` where it names none: bikestack uses `playwright-cli`, homeflow's current
-  brief another tool.
+  `playwright-cli` where it names none: bikestack uses `playwright-cli`, and homeflow's current
+  build brief names another.
 - **Pull request descriptions** also name the plan section implemented and, for a UI change,
   what the browser check covered, and reference no local, untracked files.
 - **The decision log** defaults to `docs/decisions.md` with the next free D-number, unless the
-  app names another log and its numbering above the block. Homeflow keeps per-slice logs and
+  app names another log, numbering or format above the block. Homeflow keeps per-slice logs and
   reserves numbers on `main` first.
 - **The dev-server bullet** overrides the global rule for other long-running processes too.
 - **The block's first section says where the workflow comes from**: the managed files,
