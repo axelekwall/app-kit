@@ -75,3 +75,6 @@ Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, bui
 - 2026-10-27: the 0.1.2 stack started, from the harness differences bikestack (its D71) and
   homeflow (its slice 4 decisions log) found adopting `v0.1.1`. PR 1: a fresh-context review
   after the agent's own pass, in the shared block (D8). Next: narrower shared permissions.
+- 2026-10-27: PR 2, narrower shared permissions: deny rules for the irreversible forms of the
+  allowed `git` and `gh` commands, ask rules for widened `gh api` reads, and the sync writing
+  JSON as Biome formats it (D9). Next: the shared workflow rules both apps follow.

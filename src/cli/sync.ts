@@ -163,11 +163,38 @@ export function replaceBlock(appText: string, kitText: string, path: string): st
   return appText.slice(0, app.start) + kitText.slice(kit.start, kit.end) + appText.slice(app.end)
 }
 
-/** The package's settings with the app's extra entries appended, each once. */
+/** The Biome base's `formatter.lineWidth`. */
+const LINE_WIDTH = 100
+
+/**
+ * `value` as JSON laid out the way Biome formats it, so a synced file passes the
+ * app's own check: two-space indents, and a list of strings on one line when it
+ * fits, since Biome collapses those. Lists of anything else stay expanded, which
+ * matches Biome only because the settings hold none.
+ */
+export function biomeJson(value: unknown): string {
+  const text = JSON.stringify(value, null, 2)
+  const list = /^( *)("(?:[^"\\]|\\.)*": )?\[\n((?: *"(?:[^"\\]|\\.)*",?\n)+) *\](,?)$/gm
+  return `${text.replace(list, (whole, indent: string, key = "", items: string, comma: string) => {
+    const joined = items
+      .split("\n")
+      .filter((item) => item !== "")
+      .map((item) => item.trim())
+      .join(" ")
+    const line = `${indent}${key}[${joined}]${comma}`
+    return line.length <= LINE_WIDTH ? line : whole
+  })}\n`
+}
+
+/**
+ * The package's settings with the app's extra allow entries appended, each once.
+ * The package's ask and deny rules are kept as they are: Claude Code evaluates
+ * deny, then ask, then allow, so an app entry cannot reopen what they close.
+ */
 export function settings(kitText: string, config: Config): string {
   const base = JSON.parse(kitText) as { permissions: { allow: string[] } }
   const allow = [...new Set([...base.permissions.allow, ...config.permissions.allow])]
-  return `${JSON.stringify({ ...base, permissions: { ...base.permissions, allow } }, null, 2)}\n`
+  return biomeJson({ ...base, permissions: { ...base.permissions, allow } })
 }
 
 /**

@@ -148,3 +148,52 @@ subagent, or a new session of any agent. Homeflow already worked this way in its
   review and any review thread, with how each was handled.
 - **`CLAUDE.md` names the mechanism for Claude Code**: a subagent started with the Agent tool.
   `AGENTS.md` stays tool-neutral, so another agent can use a new session.
+
+## D9 — The shared permissions refuse the irreversible forms of routine commands
+
+**Date:** 2026-10-27 · **Status:** accepted-by-default (narrowing them is the owner's decision)
+
+Homeflow's review of `v0.1.1` found the shared allow list wider than the work needs:
+`git push *` covered force pushes and remote deletes, `git stash *` covered dropping and
+clearing the stash every worktree shares, and `gh api --method GET *` let a later `-X DELETE`
+through. The list keeps routine work prompt-free and now closes those forms.
+
+- **Deny rules, not a narrower allow list.** Claude Code evaluates deny, then ask, then allow,
+  and an allow rule cannot carve an exception out of a deny. So `git push *` stays allowed and
+  deny rules refuse `--force` and `-f` in any position, a `+` refspec, `--delete`, `-d`, a `:`
+  refspec, `--mirror`, `--prune`, `--tags`, `--follow-tags` and `--no-verify`, each in the
+  positions git accepts it.
+  `--force-with-lease` stays allowed: the working agreement allows it on the agent's own
+  branches, and the `--force` rules match the flag as a whole word, not as a prefix.
+- **The stash.** `git stash *` becomes `push`, `list`, `show` and `apply`; `drop` and `clear`
+  are denied rather than asked, so an agent cannot drop even its own entry: an entry left
+  behind costs nothing, and the owner clears the stash. `pop` and a bare `git stash` prompt,
+  since pop drops an entry another session may own.
+- **`git switch` that discards changes or resets a branch** (`-f`, `--force`,
+  `--discard-changes`, `-C` and `--force-create`) is denied, as is `git checkout -b` with `-f`
+  or `--force`; the rest of `git switch *` and `git checkout -b *` stays allowed.
+- **`gh pr edit` and `gh pr comment` stay allowed on any pull request.** The agent edits its own
+  stacked pull requests constantly (retargeting, descriptions, the stack summary), and a rule
+  cannot tell its pull requests from anyone else's; the working agreement limits them to its
+  own. `gh pr comment --delete-last` is denied.
+- **`gh api` reads.** A second `-X` or `--method` after the `GET`, and any `graphql` call, ask
+  rather than run: ask rules come before allow, so the `GET` entries cannot be widened by a
+  later flag.
+- **`bun *` stays.** Narrowing it to `bun run`, `bun test` and `bun install` would not contain
+  anything, since any script can run any code; `bun publish` is denied, with its `mise exec`
+  form, because a deny rule does not match past `mise exec --`.
+- **The matcher's limits.** The rules match the command text after Claude Code splits compound
+  commands and strips wrappers such as `timeout`. They do not match `git -C . push`, combined
+  short flags such as `-uf`, or a tag pushed by name, and they are not a security boundary;
+  `CLAUDE.md`'s block says so where agents read it.
+  A rule ending in `:*` is Claude Code's legacy prefix form, so the `:` refspec rule ends in
+  `:**`; Claude Code prints a startup notice for it saying it matches as a wildcard.
+- **Checked twice.** `tests/permissions.test.ts` classifies routine and irreversible commands
+  under the documented matching rules. A headless Claude Code 2.1.309 run in a checkout with
+  this list refused the force, `+`, `--delete`, `:`, `--no-verify` and `stash drop` probes
+  (dry runs), ran `--force-with-lease` and `-u` pushes, and asked for a second `-X`.
+- **Apps still add allow entries** through `app-kit.json`; the package's ask and deny rules are
+  written as they are, and an app entry that a deny rule covers stays refused.
+- **The sync writes JSON as Biome formats it.** A list short enough for one line is written on
+  one line, as Biome's formatter collapses it; before, a short `ask` list would have failed
+  every app's `bun run check` after the sync.

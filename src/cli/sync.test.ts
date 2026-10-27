@@ -2,7 +2,16 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { chmod, mkdtemp, readdir, rm, stat } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { ciWorkflow, drift, KIT_ROOT, parseConfig, replaceBlock, SyncRefusal, sync } from "./sync"
+import {
+  biomeJson,
+  ciWorkflow,
+  drift,
+  KIT_ROOT,
+  parseConfig,
+  replaceBlock,
+  SyncRefusal,
+  sync,
+} from "./sync"
 
 const BLOCK = [
   "<!--",
@@ -89,6 +98,23 @@ describe("sync", () => {
     const kit = await Bun.file(join(KIT_ROOT, ".claude/settings.json")).json()
     const synced = JSON.parse(await read(".claude/settings.json"))
     expect(synced.permissions.allow).toEqual([...kit.permissions.allow, "Bash(make *)"])
+    expect(synced.permissions.ask).toEqual(kit.permissions.ask)
+    expect(synced.permissions.deny).toEqual(kit.permissions.deny)
+  })
+
+  test("lays the settings out as Biome formats them", async () => {
+    const value = {
+      short: ["Bash(a *)", "Bash(b *)"],
+      long: Array.from({ length: 12 }, (_, index) => `Bash(command-${index} *)`),
+      empty: [],
+    }
+    const biome = Bun.spawn(
+      [join(KIT_ROOT, "node_modules/.bin/biome"), "format", "--stdin-file-path=settings.json"],
+      { cwd: KIT_ROOT, stdin: new Blob([JSON.stringify(value)]), stdout: "pipe" },
+    )
+    const [code, formatted] = await Promise.all([biome.exited, new Response(biome.stdout).text()])
+    expect(code).toBe(0)
+    expect(biomeJson(value)).toBe(formatted)
   })
 
   test("leaves nothing to report afterwards, and a second sync writes nothing", async () => {
