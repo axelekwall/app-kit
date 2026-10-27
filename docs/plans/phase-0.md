@@ -45,7 +45,7 @@ behaviour. Then a `v0.1.1` round trip.
 
 Update after every pull request: what is done, what is next, and the `Active:` line.
 
-Active: none.
+Active: Claude Code (release 0.1.1, build/release-0.1.1), on the owner's Mac.
 
 - 2026-10-23: repository created with this plan, the README, the MIT licence, the agent setup
   copied from bikestack and D1. Next: PR 1, tooling.

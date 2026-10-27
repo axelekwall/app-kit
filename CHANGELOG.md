@@ -4,6 +4,22 @@ One section per release, newest first. Versions are SemVer; while in `0.x`, a br
 bumps the minor version. "Upgrade" lists what an app must do when it bumps to that release,
 besides bumping the tag and running `bun install` and `bun run kit:sync`.
 
+## 0.1.1
+
+No automated pull request review (D7).
+
+- The `template:agent-workflow` block in `AGENTS.md` no longer says Codex reviews each pushed
+  pull request: the agent's own review of its diff is the only one before the owner's, and the
+  stack summary lists review findings from whoever left them.
+- `scripts/pr-reviews.ts` lists and answers review threads from anyone. It no longer prints
+  each pull request's latest Codex note, and its `--json` output drops `latestCodexNote`.
+
+### Upgrade
+
+- The sentence on `bun scripts/pr-reviews.ts` in `AGENTS.md`'s commands section is outside the
+  synced block. Drop "(Codex's included)" from it by hand, as app-kit's own file has it.
+- An app adopting the kit at this release follows the steps under 0.1.0 with `#v0.1.1`.
+
 ## 0.1.0
 
 The agent workflow, the configuration bases and CI. No application code yet.
