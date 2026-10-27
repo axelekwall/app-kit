@@ -125,3 +125,26 @@ longer says a reviewer arrives within minutes: the agent's own review of its dif
 one before the owner's, and the stack summary lists review findings from whoever left them.
 `scripts/pr-reviews.ts` lists and answers review threads from anyone, and no longer looks for
 Codex's notes.
+
+## D8 — A fresh-context review before each pull request
+
+**Date:** 2026-10-27 · **Status:** accepted-by-default
+
+Amends D7. With no automated reviewer, the agent's own pass was the only review before the
+owner's, and an agent reviewing its own diff reads it through its own intent. The shared
+workflow now adds a second review after that pass, by a reviewer with a fresh context: a
+subagent, or a new session of any agent. Homeflow already worked this way in its slice 4.
+
+- **The brief is the diff, the plan section and the rules**, not the author's conclusions. A
+  reviewer handed the author's reading of the change tends to confirm it.
+- **Findings come ranked, with file, line and consequence**, so they can be checked and
+  answered one by one. Valid ones are fixed in the pull request they belong to; the rest get a
+  one-line answer.
+- **The diff is the change against the branch below**, reviewed before it is committed, and
+  the reviewer only reads. `verify:full` runs again after the fixes, so nothing the reviews
+  changed reaches a commit unchecked; the dev-server check comes first, so the reviewers see
+  anything it changed.
+- **The stack summary lists every finding**, from the agent's own pass, the fresh-context
+  review and any review thread, with how each was handled.
+- **`CLAUDE.md` names the mechanism for Claude Code**: a subagent started with the Agent tool.
+  `AGENTS.md` stays tool-neutral, so another agent can use a new session.

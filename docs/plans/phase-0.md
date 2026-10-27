@@ -45,7 +45,8 @@ behaviour. Then a `v0.1.1` round trip.
 
 Update after every pull request: what is done, what is next, and the `Active:` line.
 
-Active: none.
+Active: Claude Code (Opus 5.5), in a native worktree on the owner's machine, building the
+0.1.2 stack.
 
 - 2026-10-23: repository created with this plan, the README, the MIT licence, the agent setup
   copied from bikestack and D1. Next: PR 1, tooling.
@@ -71,3 +72,6 @@ Active: none.
   pull request after its open stack merges. The phase 0 round trip is then completed by
   `v0.1.2`, homeflow's phase 1 differences, bumped in both apps. Next, after #8 and #9 are
   merged and `v0.1.1` is tagged: bikestack's adoption.
+- 2026-10-27: the 0.1.2 stack started, from the harness differences bikestack (its D71) and
+  homeflow (its slice 4 decisions log) found adopting `v0.1.1`. PR 1: a fresh-context review
+  after the agent's own pass, in the shared block (D8). Next: narrower shared permissions.
