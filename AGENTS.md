@@ -113,8 +113,9 @@ plan section.
 Where the forge allows it, the owner protects `main`: a change needs a pull request with passing
 CI, and force pushes and deletion are refused. Where it does not, the rule rests on this
 agreement, and the pre-push hook only catches mistakes. Per-tool permission lists, such as
-`.claude/settings.json`, only spare prompts for routine commands; they are for speed, not
-safety, and changing them is a configuration change that needs the owner's approval.
+`.claude/settings.json`, spare prompts for routine commands and refuse a few irreversible forms
+of them; they match command text, so they catch slips rather than enforce the agreement, and
+changing them is a configuration change that needs the owner's approval.
 
 ## Stacks and handover
 
