@@ -49,7 +49,7 @@ The checks then report as `ci / verify`, `ci / image-smoke` and `ci / publish`.
 In one pull request:
 
 1. Add the dev dependency above and a `"kit:sync": "app-kit sync"` script, documented in
-   `AGENTS.md`'s command block.
+   `AGENTS.md`'s command block, and run `bun install`.
 2. Move app-specific text out of the sections that become shared. Sync replaces everything
    between the markers, so a rule there that only this app has, or a pointer to its own
    decision log, would be lost: put it in the app's own sections above the block, or in a
@@ -59,14 +59,19 @@ In one pull request:
    app's. Drop the app's own account of the managed files and of `scripts/pr-reviews.ts`: the
    block carries both.
 4. Add `app-kit.json`: `permissions.allow` for entries the app needs beyond the shared list,
-   and `ci` with at least `app`. `"image": false` for an app without a Dockerfile.
+   and `ci` with at least `app`. `"image": false` for an app without a Dockerfile. With `ci`,
+   sync writes `.github/workflows/ci.yml`: delete the app's previous CI workflow, or both run.
+   Its checks are named `ci / verify` and so on, so a branch protection rule that requires the
+   old check name needs the owner to change it.
 5. `"extends": ["@axelekwall/app-kit/biome.json"]` in `biome.json` and `"extends":
    "@axelekwall/app-kit/tsconfig.json"` in `tsconfig.json`, keeping only what the app adds.
    TypeScript and Biome follow an `extends` by package name; Bun does not, so the options Bun
-   reads (`jsx`, `jsxImportSource`, `paths`) stay in the app's own `tsconfig.json`.
+   reads that an app sets (`jsx`, `jsxImportSource`, `paths`) stay in the app's own
+   `tsconfig.json`.
 6. With a `github-actions` entry in `.github/dependabot.yml`, ignore `axelekwall/app-kit*`
-   there. Sync writes the reusable workflow's tag from the installed package, so a Dependabot
-   bump of `ci.yml` alone fails the drift test.
+   there, and `@axelekwall/app-kit` in any npm or bun entry. Sync writes the reusable
+   workflow's tag from the installed package, so a Dependabot bump of `ci.yml` or of the
+   dependency alone fails the drift test.
 7. `bun run kit:sync`, then `bun run verify:full`. Review the diff: the sync replaces the
    blocks and managed files whole.
 
@@ -74,10 +79,10 @@ In one pull request:
 
 In one pull request:
 
-1. bump the tag in `package.json`;
-2. run `bun install` and `bun run kit:sync`, which moves the tag in `ci.yml` too;
-3. follow the release's upgrade notes in `CHANGELOG.md`;
-4. run `bun run verify:full`.
+1. Bump the tag in `package.json`.
+2. Run `bun install` and `bun run kit:sync`, which moves the tag in `ci.yml` too.
+3. Follow the release's upgrade notes in `CHANGELOG.md`.
+4. Run `bun run verify:full`.
 
 ## Rules
 
