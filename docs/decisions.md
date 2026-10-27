@@ -140,6 +140,10 @@ subagent, or a new session of any agent. Homeflow already worked this way in its
 - **Findings come ranked, with file, line and consequence**, so they can be checked and
   answered one by one. Valid ones are fixed in the pull request they belong to; the rest get a
   one-line answer.
+- **The diff is the change against the branch below**, reviewed before it is committed, and
+  the reviewer only reads. `verify:full` runs again after the fixes, so nothing the reviews
+  changed reaches a commit unchecked; the dev-server check comes first, so the reviewers see
+  anything it changed.
 - **The stack summary lists every finding**, from the agent's own pass, the fresh-context
   review and any review thread, with how each was handled.
 - **`CLAUDE.md` names the mechanism for Claude Code**: a subagent started with the Agent tool.

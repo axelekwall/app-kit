@@ -121,18 +121,19 @@ safety, and changing them is a configuration change that needs the owner's appro
 Work arrives as stacks of pull requests: each targets the branch of the one below it, the
 first targets `main`. One logical change per pull request.
 
-For each pull request: implement → `bun run verify:full` → review your own diff (correctness,
-the app contract, the rules above) → a fresh-context review → check anything with a UI or
-HTTP surface against the running dev server (`playwright-cli` in its own `-s=<name>` session,
-closed afterwards, or `curl`) → commit → push → open the pull request → update the plan's
-progress log.
+For each pull request: implement → check anything with a UI or HTTP surface against the
+running dev server (`playwright-cli` in its own `-s=<name>` session, closed afterwards, or
+`curl`) → `bun run verify:full` → review your own diff (correctness, the app contract, the
+rules above) → a fresh-context review → `bun run verify:full` again if the reviews changed
+anything → commit → push → open the pull request → update the plan's progress log.
 
-**The fresh-context review.** After your own pass, hand the pull request's diff to a reviewer
-with a fresh context: a subagent, or a new session of any agent. Give it the diff, the plan
-section the change implements and the rules to check it against, but not your own conclusions:
-a reviewer handed your reading of the change tends to confirm it. Ask for ranked findings, each
-with file, line and consequence. Fix the valid ones in the pull request they belong to, and
-answer the rest with a one-line reason.
+**The fresh-context review.** After your own pass, hand the change's diff against the branch
+below (`main` for the first pull request) to a reviewer with a fresh context: a subagent, or a
+new session of any agent, which only reads. Give it the diff, the plan section the change
+implements and the rules to check it against, but not your own conclusions: a reviewer handed
+your reading of the change tends to confirm it. Ask for ranked findings, each with file, line
+and consequence. Fix the valid ones in the pull request they belong to, and answer the rest
+with a one-line reason.
 
 No automated reviewer runs on pull requests, so your own pass and the fresh-context review are
 the only reviews before the owner's: make both real passes, not skims. Before handing over, run
@@ -143,8 +144,8 @@ one-line reason.
 When the stack is ready, post a **stack summary** comment on its top pull request: what it
 covers, how it was verified, the decisions logged, every review finding (your own pass, the
 fresh-context review and any review thread) and how each was handled, unsigned commits, and
-the merge order (bottom-up, squash merges; after each merge, retarget the
-next pull request to `main`).
+the merge order (bottom-up, squash merges; after each merge, retarget the next pull request to
+`main`).
 
 **One agent per stack at a time.** The plan's progress log has an `Active:` line naming the
 agent and the machine. Check it before starting; set it when you start and clear it when you

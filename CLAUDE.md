@@ -20,8 +20,9 @@
   database is that worktree's.
 - For browser checks use `playwright-cli` with its own session (`-s=<name>`), and close the
   session when done.
-- The fresh-context review in `AGENTS.md` is a subagent started with the Agent tool. Brief it
-  with the diff, the plan section and the rules, not your findings, and keep it to the diff.
+- The fresh-context review in `AGENTS.md` is done by a subagent started with the Agent tool.
+  Brief it with the diff, the plan section and the rules, not your conclusions, and tell it to
+  review only that diff and change nothing.
 - Prefer Claude Code's native worktrees (under `.claude/worktrees/`).
 - Routine `bun`, local `git`, `gh pr`, read-only `gh api` and `playwright-cli` calls are
   allowlisted in `.claude/settings.json` so they run without a prompt. The list is for speed,
