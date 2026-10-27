@@ -35,6 +35,11 @@ One entry per contested choice: what was picked and why. Agents add entries with
   `include`, `jsx` and Tailwind parsing stay in each app: they name the app's directories or
   depend on its frontend. `resolveJsonModule`, which only bikestack sets, is in the base; it
   only allows more.
+- **Bun does not follow it** (found adopting `v0.1.1`, 2026-10-27). Bun's bundler and runtime
+  read a relative `extends` but ignore one given by package name: on Bun 1.4.4 a base's
+  `jsxImportSource` applies through `./base/tsconfig.json` and not through
+  `@x/kit/tsconfig.json`. The options Bun reads (`jsx`, `jsxImportSource`, `paths`) therefore
+  stay in the app's own `tsconfig.json`, which the layout above already keeps there.
 - **`verify:full` stays equal to `verify`.** The consumer test needs one offline-cacheable
   `bun install` and takes about a second, so it runs in `bun test`.
 
@@ -234,3 +239,13 @@ shared text defers to.
   `kit:sync`, `app-kit.json` and how to upgrade, so each app's copy of that list cannot go
   stale. The `pr-reviews.ts` usage moved into "Stacks and handover" for the same reason. Each
   app drops its hand-written copies of both.
+
+## D11 — The reusable workflow stays called by tag
+
+**Date:** 2026-10-27 · **Status:** accepted (the owner's decision)
+
+The generated `ci.yml` calls `image.yml` at `v<package version>`, not at a commit SHA. An app
+that pins every action by SHA, as bikestack does (its D36), records this call as an exception.
+The tag is the release: sync writes it from the installed package, so bumping the dependency
+and syncing moves the workflow with the rest of the kit, and the drift test fails if `ci.yml`
+alone moves. For the same reason an app's Dependabot ignores `axelekwall/app-kit*`.
