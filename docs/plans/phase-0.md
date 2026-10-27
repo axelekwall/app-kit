@@ -6,7 +6,7 @@ before any app code moves. No application code is extracted in this phase.
 
 **Done when** bikestack's CI is green on the kit, and a later release has gone through the
 whole cycle: release, tag, bump in bikestack, sync, verify. Bikestack adopted `v0.1.1`
-directly, so the round trip is the bump to `v0.1.2`, made in homeflow at the same time.
+directly, so the round trip is its bump to `v0.1.2`, which homeflow makes at the same time.
 
 ## Stack in this repository
 
@@ -29,7 +29,8 @@ blocks in its `AGENTS.md` and `CLAUDE.md` and the managed files at their own pat
 Then, in bikestack, as its own one-pull-request stack: the dependency at `v0.1.0`,
 `app-kit.json`, `kit:sync`, the drift test, `extends`, and `ci.yml` calling the reusable
 workflow. The sync must reproduce bikestack's current files, so the pull request changes no
-behaviour. Then a `v0.1.1` round trip.
+behaviour. Then a round trip on the next release. (Bikestack adopted `v0.1.1` directly; the
+round trip is `v0.1.2`.)
 
 ## For the owner
 
@@ -89,5 +90,4 @@ Active: none.
   comment in the generated `ci.yml`. Next: release `0.1.2`.
 - 2026-10-27: PR 5, release `0.1.2`: the bump and its `CHANGELOG.md` section, with the upgrade
   notes for bikestack and homeflow. The stack is ready for the owner. Next, after it is merged
-  and `v0.1.2` is tagged: both apps bump to `v0.1.2` (wave 3), which completes the phase 0 round
-  trip.
+  and `v0.1.2` is tagged: both apps bump to `v0.1.2`, which completes the phase 0 round trip.
