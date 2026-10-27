@@ -115,3 +115,13 @@ One entry per contested choice: what was picked and why. Agents add entries with
 - **`0.0.0` is the unreleased version**, so the stack's earlier pull requests, which change
   `package.json` without releasing, tag nothing.
 - **Only the tagging job has `contents: write`.** The rest of the workflow is read-only.
+
+## D7 — No automated pull request review
+
+**Date:** 2026-10-27 · **Status:** accepted (the owner's decision)
+
+The owner turned off Codex's automatic review of pull requests. The shared agent workflow no
+longer says a reviewer arrives within minutes: the agent's own review of its diff is the only
+one before the owner's, and the stack summary lists review findings from whoever left them.
+`scripts/pr-reviews.ts` lists and answers review threads from anyone, and no longer looks for
+Codex's notes.

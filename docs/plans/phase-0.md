@@ -35,7 +35,7 @@ behaviour. Then a `v0.1.1` round trip.
 - Branch protection on `main` is on (2026-10-23), enforced for admins: a pull request with
   no required approvals, a passing `verify` check (not strict, so a retargeted stack does not
   need a rebase), linear history, and no force pushes or deletion.
-- Codex review on this repository, if it should review here as it does in the apps.
+- Codex review: settled, there is none, here or in the apps (D7).
 - Allow the release workflow to push tags. It asks for `contents: write` on its one job (D6);
   if the repository's Actions settings cap the token at read, the first tag push fails.
 - Optional: requiring `image-workflow / verify` in place of `verify` would let app-kit's CI drop
@@ -64,3 +64,5 @@ Active: none.
   The stack (#1 to #6) is ready for the owner. Next, after it is merged and `v0.1.0` is tagged:
   bikestack's adoption, as its own one-pull-request stack, which is also the first install from
   the public tag and the first run of the image jobs from `image.yml`.
+- 2026-10-27: the owner turned off Codex's automatic review. The shared agent workflow and
+  `scripts/pr-reviews.ts` no longer expect it (D7). It reaches the apps with the next release.
